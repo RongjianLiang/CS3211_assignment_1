@@ -17,6 +17,7 @@ private:
 	void connection_thread(ClientConnection conn);
 };
 
+// a timstamping scheme should be implemented here?
 inline std::chrono::microseconds::rep getCurrentTimestamp() noexcept
 {
 	return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();

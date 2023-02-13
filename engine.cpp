@@ -26,6 +26,12 @@ void Engine::connection_thread(ClientConnection connection)
 		// provided in the Output class:
 		switch(input.type)
 		{
+			case input_buy:{
+
+			}
+			case input_sell:{
+				
+			}
 			case input_cancel: {
 				SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
 
