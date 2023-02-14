@@ -27,6 +27,8 @@ void Engine::connection_thread(ClientConnection connection)
 		switch(input.type)
 		{
 			case input_buy:{
+			// search for matching orders in orderbook
+			// if not: added to orderbook as a resting order
 
 			}
 			case input_sell:{
@@ -66,3 +68,4 @@ void Engine::connection_thread(ClientConnection connection)
 		Output::OrderExecuted(123, 124, 1, 2000, 10, output_time);
 	}
 }
+
