@@ -35,9 +35,9 @@ public:
 	// Default constructor
 	RestOrder(ClientCommand command)
 	{
-		order_id = command.order_id;
-		price = command.price;
-		count = command.count;
+		this->order_id = command.order_id;
+		this->price = command.price;
+		this->count = command.count;
 		std::memcpy(instrument, command.instrument, 9);
 	};
 
@@ -54,7 +54,6 @@ class OrderBook{
 public:
 	// Default constructor
 	OrderBook(){
-
 	};
 
 	void insertOrder(const RestOrder& order){
@@ -67,8 +66,18 @@ public:
 	};
 
 	RestOrder* query(RestOrder){
-		// implment a sorting based on different comparator
-		
+		// implment a sorting based on different comparator using lambdas 
+		// sort by price & check validity
+		std::sort(this->books.begin(), this->books.end(),[](const RestOrder& a, const RestOrder& b)
+		{
+			return a.price > b.price;
+		});
+		// sort by time added & check validity 
+		std::sort(this->books.begin(), this->books.end(),[](const RestOrder& a, const RestOrder& b)
+		{
+			return a.time_stamp < b.time_stamp;
+		});
+
 
 	}
 	;
