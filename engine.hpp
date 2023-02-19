@@ -5,6 +5,9 @@
 #define ENGINE_HPP
 
 #include <chrono>
+#include <iostream>
+#include <cstring>
+#include <vector>
 
 #include "io.hpp"
 
@@ -18,44 +21,52 @@ private:
 };
 
 // define a data structure for order book and order book entries
-class Order {
+// create sell orderbooks and buys orderbooks
+class RestOrder {
 public:
 	uint32_t order_id;
 	uint32_t price;
 	uint32_t count;
-	char instrument[9];
-	Order* next;
+	char* instrument[9];
+	char* type;
 
 	// Default constructor
-	Order()
+	RestOrder(ClientCommand command)
 	{
-		order_id = 0;
-		price = 0;
-		count = 0;
-		//instrument = " ";
-		next = NULL;
-	}
+		order_id = command.order_id;
+		price = command.price;
+		count = command.count;
+		std::memcpy(instrument, command.instrument, 9);
+	};
 
-	// Parameterised constructor
-	Order()
-	{
-		//this->data = data;
-		this->next = NULL;
-	}
 };
 
-// single-linked list implementation of orderbook
+// dynamic array(vector) implementation of orderbook
 
 class OrderBook{
-	Order* head;
+	std::vector<RestOrder>books;
+	char* inst_type[9]; // orders inside this book shall have same instrument
+
 
 public:
 	// Default constructor
-	OrderBook(){ head = NULL; }
+	OrderBook(){
 
-	void insertOrder(Order);
 
-	void deleteOrder(Order);
+	};
+
+	void insertOrder(RestOrder){
+
+	};
+
+	void deleteOrder(RestOrder){
+
+	};
+
+	RestOrder* query(RestOrder){
+		
+	}
+	;
 
 };
 

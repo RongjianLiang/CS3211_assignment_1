@@ -27,8 +27,9 @@ void Engine::connection_thread(ClientConnection connection)
 		switch(input.type)
 		{
 			case input_buy:{
-			// search for matching orders in orderbook
+			// search for matching orders in sell orderbook
 			// if not: added to orderbook as a resting order
+			
 
 			}
 			case input_sell:{
