@@ -27,14 +27,10 @@ void Engine::connection_thread(ClientConnection connection)
 		switch(input.type)
 		{
 			case input_buy:{
-			// search for matching orders in sell orderbook
-			// if not: added to orderbook as a resting order
-			
 
 			}
 			case input_sell:{
-			// search for matching orders in orderbook
-			// if not: added to orderbook as a resting order
+
 			}
 			case input_cancel: {
 				SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
