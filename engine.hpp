@@ -73,14 +73,6 @@ public:
 		books.push_back(order); 
 	};
 
-	// simply delete empty orders at the back, or use erase_if to remove executed element 
-	void DeleteAtBack(){
-		auto it = this->books.end();
-		if((*it).count == 0){
-			books.pop_back();
-		}
-	};
-	
 	// sort the vector contains orders
 	void SortOrders (){ 
 		// sort by price & check validity
@@ -104,6 +96,7 @@ public:
 	// matchable resting orders would have their execution ID incremented 
 	// and have their "matched" member set to true for this match
 	// implement checking for inst for initial testing 
+	// erase fully executed orders from orderbook at the end  
 	void MatchOrders (ClientCommand& input){
 		for(auto it = this->books.rbegin(); it != this->books.rend(); it++){
 			// B price > S price
@@ -128,6 +121,8 @@ public:
 				continue;
 			}			
 		}
+		// erase fully executed orders from orderbook at the end 
+		auto erased = std::erase_if(this->books, [](RestOrder order){ return (order.count == 0);});
 	}
 	
 	// return true if successfully cancelled and delete the order by std::vector.erase
