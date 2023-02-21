@@ -46,8 +46,6 @@ public:
 		// uint32_t time_stamp = 
 		std::memcpy(instrument, command.instrument, 9);
 	};
-	// Move constructor 
-
 };
 
 // dynamic array(vector) implementation of orderbook
@@ -75,8 +73,8 @@ public:
 		books.push_back(order); 
 	};
 
-	// simply delete empty orders at the back
-	void Delete(){
+	// simply delete empty orders at the back, or use erase_if to remove executed element 
+	void DeleteAtBack(){
 		auto it = this->books.end();
 		if((*it).count == 0){
 			books.pop_back();
@@ -131,14 +129,38 @@ public:
 			}			
 		}
 	}
+	
+	// return true if successfully cancelled and delete the order by std::vector.erase
+	// false if rejected, either deleted or not-exist
+	// attempt to cancel deleted order would simply return false, as no such match exists. 
+	// the timestamp is determined in engine.cpp 
+	bool QueryAndCancelOrder(ClientCommand input, uint32_t time_stamp){
+		bool result = false;
+		int index = 0;
+
+		for(auto it = this->books.begin(); it != this->books.end(); it++){
+			if((*it).order_id == input.order_id){
+				// compare the timestamp and check if the order is fully filled 
+				result = (((*it).time_stamp < time_stamp) && (*it).count > 0); 
+			}
+			index ++;
+		}
+		// purge the order
+		if (result == true){
+			this->books.erase(books.begin() + index);
+		}
+		return result;
+	}
 };
 
-// a vector storing pointers to different OrderBooks
+// a vector storing pointers to different OrderBooks to achieve instrument-level concurrency 
 class BookShelf{
 	std::vector<OrderBook>shelf;
 
 	public:
-	BookShelf(){
+	BookShelf(OrderBook& bookA, OrderBook& bookB){
+		this->shelf.push_back(bookA);
+		this->shelf.push_back(bookB);
 	};
 
 	void addToShelf (OrderBook orderbook){
@@ -151,7 +173,6 @@ class BookShelf{
 			}
 		}
 	}
-	
 };
 
 // a timstamping scheme should be implemented here?

@@ -7,7 +7,7 @@
 // initialize global variable here 
 OrderBook buy_orderbook = OrderBook();
 OrderBook sell_orderbook = OrderBook();
-BookShelf book_shelf= BookShelf();
+//BookShelf book_shelf= BookShelf(buy_orderbook, sell_orderbook);
 
 void Engine::accept(ClientConnection connection)
 {
@@ -86,12 +86,16 @@ void Engine::connection_thread(ClientConnection connection)
 				}
 			}
 			case input_cancel: {
-				SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
-
-				// Remember to take timestamp at the appropriate time, or compute
-				// an appropriate timestamp!
+				// SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
 				auto output_time = getCurrentTimestamp();
-				Output::OrderDeleted(input.order_id, true, output_time);
+				// check sell order book
+				bool cancel_in_sell = sell_orderbook.QueryAndCancelOrder(input, output_time);
+				// check buy order book
+				bool cancel_in_buy = buy_orderbook.QueryAndCancelOrder(input, output_time);
+				// either one success would call the following output
+				if(cancel_in_buy || cancel_in_sell){
+					Output::OrderDeleted(input.order_id, true, output_time);
+				}
 				break;
 			}
 
