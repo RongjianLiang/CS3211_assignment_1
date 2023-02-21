@@ -14,7 +14,7 @@ void Engine::connection_thread(ClientConnection connection)
 {
 	while(true)
 	{
-		ClientCommand input {};
+		ClientCommand input {};// empty input?
 		switch(connection.readInput(input))
 		{
 			case ReadResult::Error: SyncCerr {} << "Error reading input" << std::endl;
@@ -27,6 +27,8 @@ void Engine::connection_thread(ClientConnection connection)
 		switch(input.type)
 		{
 			case input_buy:{
+			// how to initialize the data structure?
+			
 
 			}
 			case input_sell:{

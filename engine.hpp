@@ -28,6 +28,7 @@ public:
 	uint32_t order_id;
 	uint32_t price;
 	uint32_t count;
+	uint32_t execution_ID;
 	uint32_t time_stamp; // probably retrieve time-stamps from a global variable protected by mutex
 	char* instrument[9];
 	char* type;
@@ -40,6 +41,7 @@ public:
 		this->price = command.price;
 		this->count = command.count;
 		this->matched = false;
+		this->execution_ID = 0;
 		// uint32_t time_stamp = 
 		std::memcpy(instrument, command.instrument, 9);
 	};
@@ -65,29 +67,16 @@ public:
 		books.push_back(order); 
 	};
 
-	// return the reference to last order in the book, and delete the order if no units left
-	// check the match status of all orders in the book 
-	RestOrder* ReturnAndDelete(RestOrder& order){
-		for(auto it = this->books.rbegin(); it != this->books.rend(); it++){
-			if((*it).matched == true){
-				if ((*it).count > 0){
-					return &(*it);
-				}
-	
-				if ((*it).count == 0){
-					RestOrder returnOrder = (*it);
-					books.pop_back();
-					return &returnOrder;
-				}
-			}
-			else {
-				break; // there couldnot be any matched order near the beginning 
-			}
+	// simply delete empty orders from back to front 
+	void Delete(){
+		auto it = this->books.end();
+		if((*it).count == 0){
+			books.pop_back();
 		}
 	};
 	
-	// sort the vector and match 
-	void SortAndMatch (ClientCommand& input){ 
+	// sort the vector
+	void SortOrders (ClientCommand& input){ 
 		// if the vector is empty, just add and return 
 		if(this->books.empty()){
 			AddtoBookAndTimeStamp(input);
@@ -108,20 +97,24 @@ public:
 				return a.time_stamp < b.time_stamp;
 			}
 		});
-		// loop reversely and try to match, with validity check: B price > S price
+	}
+	
+	// loop reversely and try to match, with validity check: B price > S price
+	// matchable resting orders would have their execution ID incremented 
+	void MatchOrders (ClientCommand& input){
 		for(auto it = this->books.rbegin(); it != this->books.rend(); it++){
 			// B price > S price
 			if((this->type == "B" && (*it).price >= input.price) || 
 			   (this->type == "S" && (*it).price <= input.price)){
 				// new order fully filled, with resting order fully or partially filled
 				if(input.count <= (*it).count){
-				(*it).matched = true;
+				(*it).execution_ID ++;
 				(*it).count -= input.count;
 				input.count = 0;
 				}
 				// new order partially or fully filed, with resting order fully filled 
 				if(input.count >= (*it).count){
-				(*it).matched = true;
+				(*it).execution_ID ++;
 				(*it).count = 0;
 				input.count -= (*it).count;
 				}
