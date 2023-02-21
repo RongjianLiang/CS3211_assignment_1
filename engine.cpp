@@ -4,6 +4,11 @@
 #include "io.hpp"
 #include "engine.hpp"
 
+// initialize global variable here 
+OrderBook buy_orderbook = OrderBook();
+OrderBook sell_orderbook = OrderBook();
+BookShelf book_shelf= BookShelf();
+
 void Engine::accept(ClientConnection connection)
 {
 	auto thread = std::thread(&Engine::connection_thread, this, std::move(connection));
@@ -12,7 +17,7 @@ void Engine::accept(ClientConnection connection)
 
 void Engine::connection_thread(ClientConnection connection)
 {
-	while(true)
+	while(true) // do not exit this loop until getting a match  
 	{
 		ClientCommand input {};// empty input?
 		switch(connection.readInput(input))
@@ -27,12 +32,58 @@ void Engine::connection_thread(ClientConnection connection)
 		switch(input.type)
 		{
 			case input_buy:{
-			// how to initialize the data structure?
-			
+			// simply add to buy book if the sell orderbook is empty 
+				if (sell_orderbook.books.empty()){
+					buy_orderbook.AddtoBookAndTimeStamp(input);
+				}
+				else { // the matching orderbook is non-empty, then perform the matching 
+					sell_orderbook.SortOrders();
+					sell_orderbook.MatchOrders(input);
+					auto output_time = getCurrentTimestamp();
 
+					// loop through the books for matched orders
+					for(auto it = sell_orderbook.books.rbegin(); it != sell_orderbook.books.rend(); it++){
+						if((*it).matched == true){
+							Output::OrderExecuted(input.order_id,(*it).order_id,(*it).execution_ID,
+							(*it).price,(*it).count,(*it).time_stamp);
+							(*it).matched = false; // reset matched state
+						} else {
+							break; // no matched order near the beginning 
+						}
+					}
+
+					// check if input order has been fully filled, add to buy book if not 
+					if(input.count > 0){
+						buy_orderbook.AddtoBookAndTimeStamp(input);
+					}
+				}
 			}
 			case input_sell:{
+			// simply add to sell orderbook if the buy orderbook is empty 
+				if (buy_orderbook.books.empty()){
+					sell_orderbook.AddtoBookAndTimeStamp(input);
+				}
+				else {
+					buy_orderbook.SortOrders();
+					buy_orderbook.MatchOrders(input);
+					auto output_time = getCurrentTimestamp();
 
+					// loop through the books for matched orders
+					for (auto it = buy_orderbook.books.rbegin(); it != buy_orderbook.books.rend(); it++){
+						if((*it).matched == true){
+							Output::OrderExecuted(input.order_id,(*it).order_id,(*it).execution_ID,
+							(*it).price,(*it).count,(*it).time_stamp);
+							(*it).matched = false; // rest matched state
+						} else {
+							break;
+						}
+					}
+
+					// check if input order has been fully flled, add to sell book if not 
+					if(input.count > 0){
+						sell_orderbook.AddtoBookAndTimeStamp(input);
+					}
+				}
 			}
 			case input_cancel: {
 				SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;

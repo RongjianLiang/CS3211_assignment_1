@@ -9,6 +9,7 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
+#include <string>
 
 #include "io.hpp"
 
@@ -51,23 +52,30 @@ public:
 
 // dynamic array(vector) implementation of orderbook
 class OrderBook{
-	std::vector<RestOrder>books;
-	char* inst_type[9]; // orders inside this book shall have same instrument
-	char* type;			// orders inside this book shall have same type
+	public:
+		std::vector<RestOrder>books;
+		char* inst_type[9]; // orders inside this book shall have same instrument
+		char* type;			// orders inside this book shall have same type
 
 public:
 	// Default constructor
 	OrderBook(){
+		//this->type = type;
 	};
+
+	void setInst (char* inst){
+		std::memcpy(this->type, type, 9);
+	}
 
 	// add order from client command and time-stamping
 	void AddtoBookAndTimeStamp(ClientCommand& input){
 		// this section should be protected 
 		RestOrder order = RestOrder(input); // the RestOrder constructor should time-stamp
+		order.time_stamp = getCurrentTimestamp();
 		books.push_back(order); 
 	};
 
-	// simply delete empty orders from back to front 
+	// simply delete empty orders at the back
 	void Delete(){
 		auto it = this->books.end();
 		if((*it).count == 0){
@@ -75,13 +83,8 @@ public:
 		}
 	};
 	
-	// sort the vector
-	void SortOrders (ClientCommand& input){ 
-		// if the vector is empty, just add and return 
-		if(this->books.empty()){
-			AddtoBookAndTimeStamp(input);
-			return;
-		}
+	// sort the vector contains orders
+	void SortOrders (){ 
 		// sort by price & check validity
 		std::sort(this->books.begin(), this->books.end(),[this](const RestOrder& a, const RestOrder& b)
 		{
@@ -101,20 +104,24 @@ public:
 	
 	// loop reversely and try to match, with validity check: B price > S price
 	// matchable resting orders would have their execution ID incremented 
+	// and have their "matched" member set to true for this match
+	// implement checking for inst for initial testing 
 	void MatchOrders (ClientCommand& input){
 		for(auto it = this->books.rbegin(); it != this->books.rend(); it++){
 			// B price > S price
-			if((this->type == "B" && (*it).price >= input.price) || 
-			   (this->type == "S" && (*it).price <= input.price)){
+			if((this->type == "B" && (*it).price >= input.price && *(*it).instrument == input.instrument) || 
+			   (this->type == "S" && (*it).price <= input.price && *(*it).instrument == input.instrument)){
 				// new order fully filled, with resting order fully or partially filled
 				if(input.count <= (*it).count){
 				(*it).execution_ID ++;
+				(*it).matched = true;
 				(*it).count -= input.count;
 				input.count = 0;
 				}
 				// new order partially or fully filed, with resting order fully filled 
 				if(input.count >= (*it).count){
 				(*it).execution_ID ++;
+				(*it).matched = true;
 				(*it).count = 0;
 				input.count -= (*it).count;
 				}
@@ -122,10 +129,6 @@ public:
 			else {
 				continue;
 			}			
-		}
-		// if the new order is still not filled, add to books
-		if(input.count > 0 ){
-			AddtoBookAndTimeStamp(input);
 		}
 	}
 };
@@ -140,6 +143,13 @@ class BookShelf{
 
 	void addToShelf (OrderBook orderbook){
 		shelf.push_back(orderbook);
+	}
+
+	OrderBook* queryShelf(ClientCommand input){
+		for(auto it = this->shelf.begin(); it != this->shelf.end(); it++){
+			if(*(*it).inst_type == input.instrument){
+			}
+		}
 	}
 	
 };
