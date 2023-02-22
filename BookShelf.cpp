@@ -2,18 +2,6 @@
 
 #include "BookShelf.hpp"
 
-OrderBook& Instrument::getInstrumentSellBook(ClientCommand& input)
-{
-    const std::lock_guard<std::mutex> lock (instrument_sell_book_mutex);
-    return sellBook;
-}
-	
-OrderBook& Instrument::getInstrumentBuyBook(ClientCommand& input)
-{
-	const std::lock_guard<std::mutex> lock (instrument_buy_book_mutex);
-    return buyBook;
-}
-
 std::shared_ptr<Instrument> BookShelf::getInstrumentBooks(std::string instrumentName) {
     const std::shared_lock lock(bookshelf_mutex);
 

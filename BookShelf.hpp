@@ -1,5 +1,6 @@
 #include <unordered_map>
 #include <memory>
+#include <shared_mutex>
 
 #include "io.hpp"
 #include "OrderBook.cpp"
@@ -7,16 +8,13 @@
 class Instrument
 {
 private:
+public:
     std::mutex instrument_buy_book_mutex;
     std::mutex instrument_sell_book_mutex;
-    OrderBook sellBook;
-    OrderBook buyBook;   
-public:
-    Instrument(): sellBook(), buyBook() {}
- 
-    OrderBook& getInstrumentSellBook(ClientCommand& input);
-	
-    OrderBook& getInstrumentBuyBook(ClientCommand& input);
+    OrderBook sellBook = OrderBook();
+    OrderBook buyBook = OrderBook();   
+    
+    Instrument() {}
 };
 
 class BookShelf

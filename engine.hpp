@@ -28,7 +28,7 @@ public:
 	void accept(ClientConnection conn);
 
 private:
-    BookShelf bookShelf();
+    BookShelf bookShelf{};
     
     void connection_thread(ClientConnection conn);
 };
