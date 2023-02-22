@@ -145,6 +145,7 @@ public:
 			if((*it).order_id == input.order_id){
 				// compare the timestamp and check if the order is fully filled 
 				result = (((*it).time_stamp < time_stamp) && (*it).count > 0); 
+				break;
 			}
 			index ++;
 		}
