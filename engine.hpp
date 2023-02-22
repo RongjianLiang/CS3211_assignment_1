@@ -170,11 +170,11 @@ class BookShelf{
 		shelf.push_back(orderbook);
 	}
 
-	OrderBook* queryShelf(ClientCommand input){
-		for(auto it = this->shelf.begin(); it != this->shelf.end(); it++){
-			if(*(*it).inst_type == input.instrument){
-			}
-		}
-	}
+	// OrderBook* queryShelf(ClientCommand input){
+	// 	for(auto it = this->shelf.begin(); it != this->shelf.end(); it++){
+	// 		if(*(*it).inst_type == input.instrument){
+	// 		}
+	// 	}
+	// }
 };
 #endif
