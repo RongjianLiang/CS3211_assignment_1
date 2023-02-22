@@ -71,6 +71,7 @@ void Engine::connection_thread(ClientConnection connection)
 						Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
 					}
 				}
+				break;
 			}
 			case input_sell:{
 				// simply add to sell orderbook if the buy orderbook is empty, need to acquire sell mutex
@@ -105,6 +106,7 @@ void Engine::connection_thread(ClientConnection connection)
 						sell_orderbook.AddtoBookwithTimeStamp(input, time);
 					}
 				}
+				break;
 			}
 			case input_cancel: {
 				// SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
@@ -126,6 +128,7 @@ void Engine::connection_thread(ClientConnection connection)
 				}
 				// either one success would call the following output
 				Output::OrderDeleted(input.order_id, (cancel_in_buy || cancel_in_sell), output_time);
+				break;
 			}
 
 			default: {
