@@ -122,7 +122,7 @@ public:
 			}			
 		}
 		// erase fully executed orders from orderbook at the end 
-		auto erased = std::erase_if(this->books, [](RestOrder order){ return (order.count == 0);});
+		// auto erased = std::erase_if(this->books, [](RestOrder order){ return (order.count == 0);});
 	}
 	
 	// return true if successfully cancelled and delete the order by std::vector.erase
