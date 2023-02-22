@@ -7,7 +7,7 @@ CXXFLAGS := $(CXXFLAGS) -g -O3 -Wall -pedantic  -std=c++20 -pthread -fsanitize=t
 
 BUILDDIR = build
 
-SRCS = main.cpp engine.cpp io.cpp OrderBook.cpp RestOrder.cpp
+SRCS = main.cpp engine.cpp io.cpp OrderBook.cpp RestOrder.cpp BookShelf.cpp
 
 all: engine client
 

@@ -1,6 +1,0 @@
-clang++ -MT build/main.cpp.o -MMD -MP -MF build/main.cpp.d  -g -O3 -Wall -Wextra -Wpedantic -std=c++20 -pthread -fsanitize=thread -Wconversion   -c -o build/main.cpp.o main.cpp
-clang++ -MT build/engine.cpp.o -MMD -MP -MF build/engine.cpp.d  -g -O3 -Wall -Wextra -Wpedantic -std=c++20 -pthread -fsanitize=thread -Wconversion   -c -o build/engine.cpp.o engine.cpp
-clang++ -MT build/io.cpp.o -MMD -MP -MF build/io.cpp.d  -g -O3 -Wall -Wextra -Wpedantic -std=c++20 -pthread -fsanitize=thread -Wconversion   -c -o build/io.cpp.o io.cpp
-clang++  -g -O3 -Wall -Wextra -Wpedantic -std=c++20 -pthread -fsanitize=thread -Wconversion    build/main.cpp.o build/engine.cpp.o build/io.cpp.o   -o engine
-clang++ -MT build/client.cpp.o -MMD -MP -MF build/client.cpp.d  -g -O3 -Wall -Wextra -Wpedantic -std=c++20 -pthread -fsanitize=thread -Wconversion   -c -o build/client.cpp.o client.cpp
-clang++  -g -O3 -Wall -Wextra -Wpedantic -std=c++20 -pthread -fsanitize=thread -Wconversion    build/client.cpp.o   -o client

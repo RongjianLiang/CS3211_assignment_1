@@ -12,11 +12,11 @@
 #include <algorithm>
 #include <string>
 
-#include "OrderBook.cpp"
+#include "BookShelf.hpp"
 #include "io.hpp"
 
 // a timstamping scheme should be implemented here?
-inline std::chrono::microseconds::rep getCurrentTimestamp() noexcept
+inline chrono_reps getCurrentTimestamp() noexcept
 {
 	return std::floor(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()
 	/ 1000000);
@@ -28,32 +28,9 @@ public:
 	void accept(ClientConnection conn);
 
 private:
-    std::mutex buy_order_book_mutex;
-    std::mutex sell_order_book_mutex;
-    OrderBook buy_orderbook = OrderBook();
-    OrderBook sell_orderbook = OrderBook();
+    BookShelf bookShelf{};
+    
     void connection_thread(ClientConnection conn);
 };
 
-// a vector storing pointers to different OrderBooks to achieve instrument-level concurrency 
-class BookShelf{
-	std::vector<OrderBook>shelf;
-
-	public:
-	BookShelf(OrderBook& bookA, OrderBook& bookB){
-		this->shelf.push_back(bookA);
-		this->shelf.push_back(bookB);
-	};
-
-	void addToShelf (OrderBook orderbook){
-		shelf.push_back(orderbook);
-	}
-
-	// OrderBook* queryShelf(ClientCommand input){
-	// 	for(auto it = this->shelf.begin(); it != this->shelf.end(); it++){
-	// 		if(*(*it).inst_type == input.instrument){
-	// 		}
-	// 	}
-	// }
-};
 #endif
