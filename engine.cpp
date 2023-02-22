@@ -52,8 +52,9 @@ void Engine::connection_thread(ClientConnection connection)
 					for(auto it = sell_orderbook.books.rbegin(); it != sell_orderbook.books.rend(); it++){
 						if((*it).matched == true){
 							Output::OrderExecuted(input.order_id,(*it).order_id,(*it).execution_ID,
-							(*it).price,(*it).count,(*it).time_stamp);
+							(*it).price,(*it).count,output_time);
 							(*it).matched = false; // reset matched state
+							(*it).time_stamp = output_time; // update the timestamp after execution, for cancelling orders 
 						} else {
 							break; // no more matched order near the beginning 
 						}
@@ -83,8 +84,9 @@ void Engine::connection_thread(ClientConnection connection)
 					for (auto it = buy_orderbook.books.rbegin(); it != buy_orderbook.books.rend(); it++){
 						if((*it).matched == true){
 							Output::OrderExecuted(input.order_id,(*it).order_id,(*it).execution_ID,
-							(*it).price,(*it).count,(*it).time_stamp);
+							(*it).price,(*it).count,output_time);
 							(*it).matched = false; // rest matched state
+							(*it).time_stamp = output_time; // update the timestamps, for cancelling orders 
 						} else {
 							break;
 						}
@@ -100,7 +102,8 @@ void Engine::connection_thread(ClientConnection connection)
 			case input_cancel: {
 				// SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
 				auto output_time = getCurrentTimestamp();
-				bool cancel_in_buy, cancel_in_sell = false;
+				bool cancel_in_buy = false;
+				bool cancel_in_sell = false;
 				{
 					// acquire the sell mutex
 					const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
