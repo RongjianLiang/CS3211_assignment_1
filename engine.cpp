@@ -5,14 +5,6 @@
 #include "io.hpp"
 #include "engine.hpp"
 
-// initialize global variable here 
-OrderBook buy_orderbook = OrderBook();
-OrderBook sell_orderbook = OrderBook();
-//BookShelf book_shelf= BookShelf(buy_orderbook, sell_orderbook);
-
-std::mutex buy_order_book_mutex;
-std::mutex sell_order_book_mutex;
-
 void Engine::accept(ClientConnection connection)
 {
 	auto thread = std::thread(&Engine::connection_thread, this, std::move(connection));
