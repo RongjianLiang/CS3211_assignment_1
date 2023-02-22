@@ -4,6 +4,7 @@
 
 #include "io.hpp"
 #include "engine.hpp"
+#include "BookShelf.hpp"
 
 // initialize global variable here 
 OrderBook buy_orderbook = OrderBook();

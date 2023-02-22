@@ -1,15 +1,20 @@
+class Instrument
+{
+    std::mutex instrument_buy_book_mutex;
+    std::mutex instrument_sell_book_mutex;
+    OrderBook sellBook;
+    OrderBook buyBook;   
+ 
+    OrderBook& getInstrumentSellBook(ClientCommand input);
+	
+    OrderBook& getInstrumentBuyBook(ClientCommand input);
+};
+
 class BookShelf
 {
-    std::unordered_map<std::string, Instrument&> myMap;
+    std::mutex get_instrument;
+    std::unordered_map<std::string, Instrument> bookShelf;
 
 public:
-	void addToShelf (OrderBook orderbook){
-		shelf.push_back(orderbook);
-	}
-
-	OrderBook& getInstrumentSellBook(ClientCommand input){
-	}
-	
-    OrderBook& getInstrumentBuyBook(ClientCommand input){
-	}
+    Instrument& getInstrumentBooks(std::string instrument);
 };

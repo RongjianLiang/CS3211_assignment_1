@@ -10,6 +10,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <unordered_map>
 
 #include "io.hpp"
 
@@ -26,6 +27,7 @@ public:
 
 private:
 	void connection_thread(ClientConnection conn);
+    std::mutex get_instrument_book_mutex;
 };
 
 // define a data structure for order book and order book entries
@@ -156,25 +158,4 @@ public:
 	}
 };
 
-// a vector storing pointers to different OrderBooks to achieve instrument-level concurrency 
-class BookShelf{
-	std::vector<OrderBook>shelf;
-
-	public:
-	BookShelf(OrderBook& bookA, OrderBook& bookB){
-		this->shelf.push_back(bookA);
-		this->shelf.push_back(bookB);
-	};
-
-	void addToShelf (OrderBook orderbook){
-		shelf.push_back(orderbook);
-	}
-
-	// OrderBook* queryShelf(ClientCommand input){
-	// 	for(auto it = this->shelf.begin(); it != this->shelf.end(); it++){
-	// 		if(*(*it).inst_type == input.instrument){
-	// 		}
-	// 	}
-	// }
-};
 #endif
