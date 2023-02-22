@@ -40,6 +40,7 @@ void Engine::connection_thread(ClientConnection connection)
 				const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
 				// simply add to buy book if the sell orderbook is empty, need to acquire buy orderbook mutex here 
 				if (sell_orderbook.books.empty()){
+					std::cout << "empty sell orderbook" << std::endl;
 					const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
 					buy_orderbook.AddtoBookAndTimeStamp(input);
 				}
