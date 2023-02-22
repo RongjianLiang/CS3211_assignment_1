@@ -14,35 +14,34 @@ OrderBook& Instrument::getInstrumentBuyBook(ClientCommand& input)
     return buyBook;
 }
 
-Instrument* BookShelf::getInstrumentBooks(std::string instrumentName) {
+std::shared_ptr<Instrument> BookShelf::getInstrumentBooks(std::string instrumentName) {
     const std::shared_lock lock(bookshelf_mutex);
 
     if (bookShelf.contains(instrumentName)) {
-        return &(bookShelf.at(std::string(instrumentName)));
+        return bookShelf.at(std::string(instrumentName));
     }
     else {
-        return NULL;
+        return std::shared_ptr<Instrument>{};
     }
 }
 
 void BookShelf::addInstrumentBooks(std::string instrumentName) {
-    const std::unique_lock lock{(bookshelf_mutex)};
+    const std::shared_lock lock{(bookshelf_mutex)};
 
     if (bookShelf.contains(instrumentName)) {
         return;
     }
-    Instrument newInstrument{};
-    std::string temp = instrumentName;
-    auto pzz = std::make_pair(instrumentName, std::move(newInstrument));
-    bookShelf.insert({temp, newInstrument});
+    std::shared_ptr<Instrument> newInstrument = std::make_shared<Instrument>();
+    auto pair = std::make_pair(instrumentName, newInstrument);
+    bookShelf.insert(pair);
 }
 
-Instrument& BookShelf::getInstrumentBooksIfExistOrElseAddAndGet(std::string instrumentName) {
-    Instrument* instrumentBooks = getInstrumentBooks(instrumentName);
-    if (instrumentBooks == NULL) {
+std::shared_ptr<Instrument> BookShelf::getInstrumentBooksIfExistOrElseAddAndGet(std::string instrumentName) {
+    std::shared_ptr<Instrument> instrumentBooks = getInstrumentBooks(instrumentName);
+    if (instrumentBooks) {
         addInstrumentBooks(instrumentName);
-        return *(getInstrumentBooks(instrumentName));
+        return getInstrumentBooks(instrumentName);
     }
-    return *(instrumentBooks);
+    return instrumentBooks;
 }
 

@@ -4,7 +4,6 @@
 
 #include "io.hpp"
 #include "engine.hpp"
-#include "BookShelf.hpp"
 
 void Engine::accept(ClientConnection connection)
 {

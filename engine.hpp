@@ -13,7 +13,7 @@
 #include <string>
 #include <shared_mutex>
 
-#include "BookShelf.cpp"
+#include "BookShelf.hpp"
 #include "io.hpp"
 
 // a timstamping scheme should be implemented here?

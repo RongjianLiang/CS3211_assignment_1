@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include <memory>
 
 #include "io.hpp"
 #include "OrderBook.cpp"
@@ -22,12 +23,12 @@ class BookShelf
 {
 private:
     std::shared_mutex bookshelf_mutex;
-    std::unordered_map<std::string, Instrument> bookShelf;
+    std::unordered_map<std::string, std::shared_ptr<Instrument>> bookShelf;
 
     void addInstrumentBooks(std::string instrumentName);
-    Instrument* getInstrumentBooks(std::string instrumentName);
+    std::shared_ptr<Instrument> getInstrumentBooks(std::string instrumentName);
 
 public:
-    Instrument& getInstrumentBooksIfExistOrElseAddAndGet(std::string instrumentName);
+    std::shared_ptr<Instrument> getInstrumentBooksIfExistOrElseAddAndGet(std::string instrumentName);
 };
 
