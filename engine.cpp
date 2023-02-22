@@ -31,13 +31,13 @@ void Engine::connection_thread(ClientConnection connection)
 				// simply add to buy book if the sell orderbook is empty, need to acquire buy orderbook mutex here 
 				if (sell_orderbook.books.empty()){
 					uint32_t time = getCurrentTimestamp();
-					const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
+					// const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
 					buy_orderbook.AddtoBookwithTimeStamp(input, time);
 					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,false,time);
 				}
 				else { // the matching orderbook is non-empty, then perform the matching
 					// acquire the sell mutex
-					static const std::lock_guard<std::mutex> lock (sell_order_book_mutex); 
+					// static const std::lock_guard<std::mutex> lock (sell_order_book_mutex); 
 					sell_orderbook.SortOrders();
 					sell_orderbook.MatchOrders(input);
 					auto output_time = getCurrentTimestamp();
@@ -107,14 +107,14 @@ void Engine::connection_thread(ClientConnection connection)
 				bool cancel_in_sell = false;
 				{
 					// acquire the buy mutex
-					static const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
+					// const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
 					bool cancel_in_buy = buy_orderbook.QueryAndCancelOrder(input, output_time);
 					std::cout <<"is it cancelled in buy? " << cancel_in_sell <<std::endl;
 				}
 
 				{
 					// acquire the sell mutex
-					const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
+					// const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
 					bool cancel_in_sell = sell_orderbook.QueryAndCancelOrder(input, output_time);
 					std::cout <<"is it cancelled in sell? " << cancel_in_sell <<std::endl;
 				}
