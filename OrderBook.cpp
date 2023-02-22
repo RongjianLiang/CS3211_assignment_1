@@ -10,7 +10,6 @@ public:
 
 	// Default constructor
 	OrderBook(){
-        std::cout << "ob" << std::endl;
 		//this->type = type;
 	};
 

@@ -26,7 +26,7 @@ void BookShelf::addInstrumentBooks(std::string instrumentName) {
 
 std::shared_ptr<Instrument> BookShelf::getInstrumentBooksIfExistOrElseAddAndGet(std::string instrumentName) {
     std::shared_ptr<Instrument> instrumentBooks = getInstrumentBooks(instrumentName);
-    if (instrumentBooks) {
+    if (!instrumentBooks) {
         addInstrumentBooks(instrumentName);
         return getInstrumentBooks(instrumentName);
     }
