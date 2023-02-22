@@ -78,7 +78,8 @@ void Engine::connection_thread(ClientConnection connection)
 				// simply add to sell orderbook if the buy orderbook is empty, need to acquire sell mutex
 				if (buy_orderbook.books.empty()){
 					const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
-					sell_orderbook.AddtoBookwithTimeStamp(input);
+					uint32_t time = getCurrentTimestamp();
+					sell_orderbook.AddtoBookwithTimeStamp(input,time);
 				}
 				else {
 					buy_orderbook.SortOrders();
@@ -100,7 +101,8 @@ void Engine::connection_thread(ClientConnection connection)
 					// check if input order has been fully flled, add to sell book if not, need to acquire sell mutex here
 					if(input.count > 0){
 						const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
-						sell_orderbook.AddtoBookwithTimeStamp(input);
+						uint32_t time = getCurrentTimestamp();
+						sell_orderbook.AddtoBookwithTimeStamp(input, time);
 					}
 				}
 			}
