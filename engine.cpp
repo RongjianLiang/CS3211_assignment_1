@@ -38,11 +38,12 @@ void Engine::connection_thread(ClientConnection connection)
 			case input_buy:{
 				// simply add to buy book if the sell orderbook is empty, need to acquire buy orderbook mutex here 
 				if (sell_orderbook.books.empty()){
-					// std::cout << "empty sell orderbook" << std::endl;
+					std::cout << "empty sell orderbook" << std::endl;
 					uint32_t time = getCurrentTimestamp();
 					const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
 					buy_orderbook.AddtoBookwithTimeStamp(input, time);
 					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,false,time);
+					std::cout << "exiting the scope now..."<<std::endl;
 				}
 				else { // the matching orderbook is non-empty, then perform the matching
 					// acquire the sell mutex
