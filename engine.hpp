@@ -74,9 +74,11 @@ public:
 	// add order from client command and time-stamping
 	void AddtoBookwithTimeStamp(ClientCommand& input, uint32_t time){
 		// this section should be protected 
+		std::cout << "inside adder..."<<std::endl;
 		RestOrder order = RestOrder(input); // the RestOrder constructor should time-stamp
 		order.time_stamp = time;
 		books.push_back(order); 
+		std::cout << "exiting adder..." <<std::endl;
 	};
 
 	// sort the vector contains orders
