@@ -2,26 +2,47 @@
 
 #include "BookShelf.hpp"
 
-OrderBook& getInstrumentSellBook(ClientCommand& input)
+OrderBook& Instrument::getInstrumentSellBook(ClientCommand& input)
 {
     const std::lock_guard<std::mutex> lock (instrument_sell_book_mutex);
     return sellBook;
 }
 	
-OrderBook& getInstrumentBuyBook(ClientCommand& input)
+OrderBook& Instrument::getInstrumentBuyBook(ClientCommand& input)
 {
 	const std::lock_guard<std::mutex> lock (instrument_buy_book_mutex);
     return buyBook;
 }
 
-Instrument& getInstrumentBooks(std::string instrument) {
-	const std::lock_guard<std::mutex> lock (get_instrument);
-    if (bookShelf.contains(std::string(input.instrument)) {
-        return bookShelf.at(std::string(input.instrument));
+Instrument* BookShelf::getInstrumentBooks(std::string instrumentName) {
+    const std::shared_lock lock(bookshelf_mutex);
+
+    if (bookShelf.contains(instrumentName)) {
+        return &(bookShelf.at(std::string(instrumentName)));
     }
     else {
-        Instrument newInstrument();
-        bookShelf.insert({instrument, newInstrument});
-        return newInstrument;
+        return NULL;
     }
 }
+
+void BookShelf::addInstrumentBooks(std::string instrumentName) {
+    const std::unique_lock lock{(bookshelf_mutex)};
+
+    if (bookShelf.contains(instrumentName)) {
+        return;
+    }
+    Instrument newInstrument{};
+    std::string temp = instrumentName;
+    auto pzz = std::make_pair(instrumentName, std::move(newInstrument));
+    bookShelf.insert({temp, newInstrument});
+}
+
+Instrument& BookShelf::getInstrumentBooksIfExistOrElseAddAndGet(std::string instrumentName) {
+    Instrument* instrumentBooks = getInstrumentBooks(instrumentName);
+    if (instrumentBooks == NULL) {
+        addInstrumentBooks(instrumentName);
+        return *(getInstrumentBooks(instrumentName));
+    }
+    return *(instrumentBooks);
+}
+

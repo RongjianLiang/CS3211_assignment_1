@@ -11,9 +11,9 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-#include <unordered_map>
+#include <shared_mutex>
 
-#include "OrderBook.cpp"
+#include "BookShelf.cpp"
 #include "io.hpp"
 
 // a timstamping scheme should be implemented here?
@@ -29,10 +29,8 @@ public:
 	void accept(ClientConnection conn);
 
 private:
-    std::mutex buy_order_book_mutex;
-    std::mutex sell_order_book_mutex;
-    OrderBook buy_orderbook = OrderBook();
-    OrderBook sell_orderbook = OrderBook();
+    BookShelf bookShelf();
+    
     void connection_thread(ClientConnection conn);
 };
 
