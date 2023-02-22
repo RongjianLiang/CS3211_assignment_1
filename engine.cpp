@@ -42,6 +42,7 @@ void Engine::connection_thread(ClientConnection connection)
 					uint32_t time = getCurrentTimestamp();
 					const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
 					buy_orderbook.AddtoBookwithTimeStamp(input, time);
+					std::cout << "empty sell orderbook....." << std::endl;
 					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,false,time);
 					std::cout << "exiting the scope now..."<<std::endl;
 				}
