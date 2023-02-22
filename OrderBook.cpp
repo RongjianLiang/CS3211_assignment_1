@@ -18,12 +18,14 @@ public:
 	}
 
 	// add order from client command and time-stamping
-	void AddtoBookwithTimeStamp(ClientCommand& input, uint32_t time){
+	void AddtoBookwithTimeStamp(ClientCommand& input, uint32_t time, std::unordered_map<uint32_t, std::string>& orderIdsToInstrumentsMap){
 		// this section should be protected 
 		std::cout << "inside adder..."<<std::endl;
 		RestOrder order = RestOrder(input); // the RestOrder constructor should time-stamp
 		order.time_stamp = time;
-		books.push_back(order); 
+		
+		books.push_back(order);
+		orderIdsToInstrumentsMap.insert({input.order_id, std::string(input.instrument)});
 		std::cout << "exiting adder..." <<std::endl;
 	};
 
@@ -51,7 +53,7 @@ public:
 	// and have their "matched" member set to true for this match
 	// implement checking for inst for initial testing 
 	// erase fully executed orders from orderbook at the end  
-	void MatchOrders (ClientCommand& input){
+	void MatchOrders (ClientCommand& input, std::unordered_map<uint32_t, std::string>& orderIdsToInstrumentsMap){
 		bool thisIsBuy = (this->type.compare("B") == 0);
 		bool thisIsSell = (this->type.compare("S") == 0);
 		for(auto it = this->books.rbegin(); it != this->books.rend(); it++){
@@ -78,6 +80,7 @@ public:
 			}			
 		}
 		// erase fully executed orders from orderbook at the end 
+		// orderIdsToInstrumentsMap.delete({input.order_id, std::string(input.instrument)});
 		// auto erased = std::erase_if(this->books, [](RestOrder order){ return (order.count == 0);});
 	}
 	
@@ -85,10 +88,10 @@ public:
 	// false if rejected, either deleted or not-exist
 	// attempt to cancel deleted order would simply return false, as no such match exists. 
 	// the timestamp is determined in engine.cpp 
-	void QueryAndCancelOrder(ClientCommand input, uint32_t time_stamp, bool& res){
+	void QueryAndCancelOrder(ClientCommand input, uint32_t time_stamp, bool& res, std::unordered_map<uint32_t, std::string>& orderIdsToInstrumentsMap){
 		bool result = false;
 		int index = 0;
-
+		
 		for(auto it = this->books.begin(); it != this->books.end(); it++){
 			if((*it).order_id == input.order_id){
 				// compare the timestamp and check if the order is fully filled 
@@ -103,6 +106,7 @@ public:
 		// purge the order
 		if (result == true){
 			this->books.erase(books.begin() + index);
+			orderIdsToInstrumentsMap.erase(input.order_id);
 		}
 		res = result;
 	}

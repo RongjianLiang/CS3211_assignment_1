@@ -4,7 +4,6 @@
 
 std::shared_ptr<Instrument> BookShelf::getInstrumentBooks(std::string instrumentName) {
     const std::shared_lock lock(bookshelf_mutex);
-
     if (bookShelf.contains(instrumentName)) {
         return bookShelf.at(std::string(instrumentName));
     }
@@ -14,7 +13,7 @@ std::shared_ptr<Instrument> BookShelf::getInstrumentBooks(std::string instrument
 }
 
 void BookShelf::addInstrumentBooks(std::string instrumentName) {
-    const std::shared_lock lock{(bookshelf_mutex)};
+    const std::unique_lock lock{(bookshelf_mutex)};
 
     if (bookShelf.contains(instrumentName)) {
         return;

@@ -18,8 +18,7 @@
 // a timstamping scheme should be implemented here?
 inline chrono_reps getCurrentTimestamp() noexcept
 {
-	return std::floor(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()
-	/ 1000000);
+	return std::floor(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
 }
 
 struct Engine
@@ -29,7 +28,9 @@ public:
 
 private:
     BookShelf bookShelf{};
-    
+   	std::unordered_map<uint32_t, std::string> orderIdsToInstrumentsMap;
+
+	std::string getInstrumentForOrderId(uint32_t order_id);
     void connection_thread(ClientConnection conn);
 };
 
