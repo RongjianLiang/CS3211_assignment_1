@@ -95,6 +95,7 @@ public:
 				std::cout << "past time-stamp: "<< (*it).time_stamp <<std::endl;
 				std::cout << "new time-stamp: "<< time_stamp <<std::endl;
 				result = (((*it).time_stamp < time_stamp) && (*it).count > 0); 
+				std::cout << "result: " << result << std::endl;
 				break;
 			}
 			index ++;
