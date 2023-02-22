@@ -6,14 +6,6 @@
 #include "engine.hpp"
 #include "BookShelf.hpp"
 
-// initialize global variable here 
-OrderBook buy_orderbook = OrderBook();
-OrderBook sell_orderbook = OrderBook();
-//BookShelf book_shelf= BookShelf(buy_orderbook, sell_orderbook);
-
-std::mutex buy_order_book_mutex;
-std::mutex sell_order_book_mutex;
-
 void Engine::accept(ClientConnection connection)
 {
 	auto thread = std::thread(&Engine::connection_thread, this, std::move(connection));
@@ -22,7 +14,7 @@ void Engine::accept(ClientConnection connection)
 
 void Engine::connection_thread(ClientConnection connection)
 {
-	while(true) // do not exit this loop until getting a match  
+	while(true) // do not exit this loop until getting a match or get the job done  
 	{
 		ClientCommand input {};// empty input?
 		switch(connection.readInput(input))
@@ -37,15 +29,16 @@ void Engine::connection_thread(ClientConnection connection)
 		switch(input.type)
 		{
 			case input_buy:{
-				// acquire the sell mutex
-				const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
 				// simply add to buy book if the sell orderbook is empty, need to acquire buy orderbook mutex here 
 				if (sell_orderbook.books.empty()){
-					std::cout << "empty sell orderbook" << std::endl;
-					const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
-					buy_orderbook.AddtoBookAndTimeStamp(input);
+					uint32_t time = getCurrentTimestamp();
+					// const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
+					buy_orderbook.AddtoBookwithTimeStamp(input, time);
+					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,false,time);
 				}
-				else { // the matching orderbook is non-empty, then perform the matching 
+				else { // the matching orderbook is non-empty, then perform the matching
+					// acquire the sell mutex
+					// static const std::lock_guard<std::mutex> lock (sell_order_book_mutex); 
 					sell_orderbook.SortOrders();
 					sell_orderbook.MatchOrders(input);
 					auto output_time = getCurrentTimestamp();
@@ -63,21 +56,26 @@ void Engine::connection_thread(ClientConnection connection)
 					}
 
 					// check if input order has been fully filled, add to buy book if not, need to acqurie buy mutex here 
-					if(input.count > 0){
-						const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
-						buy_orderbook.AddtoBookAndTimeStamp(input);
-					}
+					// if(input.count > 0){
+					// 	std::cout << "should only execute this code after matching with remaining units..."<<std::endl;
+					// 	uint32_t time = getCurrentTimestamp();
+					// 	const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
+					// 	buy_orderbook.AddtoBookwithTimeStamp(input, time);
+					// 	Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
+					// }
 				}
+				break;
 			}
 			case input_sell:{
-				// acquire the buy mutex
-				const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
 				// simply add to sell orderbook if the buy orderbook is empty, need to acquire sell mutex
 				if (buy_orderbook.books.empty()){
 					const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
-					sell_orderbook.AddtoBookAndTimeStamp(input);
+					uint32_t time = getCurrentTimestamp();
+					sell_orderbook.AddtoBookwithTimeStamp(input,time);
 				}
 				else {
+					// acquire the buy mutex
+					const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
 					buy_orderbook.SortOrders();
 					buy_orderbook.MatchOrders(input);
 					auto output_time = getCurrentTimestamp();
@@ -97,57 +95,60 @@ void Engine::connection_thread(ClientConnection connection)
 					// check if input order has been fully flled, add to sell book if not, need to acquire sell mutex here
 					if(input.count > 0){
 						const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
-						sell_orderbook.AddtoBookAndTimeStamp(input);
+						uint32_t time = getCurrentTimestamp();
+						sell_orderbook.AddtoBookwithTimeStamp(input, time);
 					}
 				}
+				break;
 			}
 			case input_cancel: {
-				// SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
+				SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
 				auto output_time = getCurrentTimestamp(); // shall we protect the time variable as well?
+				SyncCerr {} << "current timestamp: " << output_time << std::endl;
 				bool cancel_in_buy = false;
 				bool cancel_in_sell = false;
 				{
-					// acquire the sell mutex
-					const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
-					bool cancel_in_sell = sell_orderbook.QueryAndCancelOrder(input, output_time);
-				};
+					// acquire the buy mutex
+					// const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
+					buy_orderbook.QueryAndCancelOrder(input, output_time, cancel_in_buy);
+					std::cout <<"is it cancelled in buy? " << cancel_in_buy <<std::endl;
+				}
 
 				{
-					// acquire the buy mutex
-					const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
-					bool cancel_in_buy = buy_orderbook.QueryAndCancelOrder(input, output_time);
-				};
-				
-				// either one success would call the following output
-				if(cancel_in_buy || cancel_in_sell){
-					Output::OrderDeleted(input.order_id, true, output_time);
-				} else{
-					break;
+					// acquire the sell mutex
+					// const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
+					sell_orderbook.QueryAndCancelOrder(input, output_time,cancel_in_sell);
+					std::cout <<"is it cancelled in sell? " << cancel_in_buy <<std::endl;
 				}
+				// either one success would call the following output
+				Output::OrderDeleted(input.order_id, (cancel_in_buy || cancel_in_sell), output_time);
+				break;
 			}
 
 			default: {
-				SyncCerr {}
-				    << "Got order: " << static_cast<char>(input.type) << " " << input.instrument << " x " << input.count << " @ "
-				    << input.price << " ID: " << input.order_id << std::endl;
+				// SyncCerr {}
+				//     << "Got order: " << static_cast<char>(input.type) << " " << input.instrument << " x " << input.count << " @ "
+				//     << input.price << " ID: " << input.order_id << std::endl;
 
 				// Remember to take timestamp at the appropriate time, or compute
 				// an appropriate timestamp!
-				auto output_time = getCurrentTimestamp();
-				Output::OrderAdded(input.order_id, input.instrument, input.price, input.count, input.type == input_sell,
-				    output_time);
+				// auto output_time = getCurrentTimestamp();
+				// Output::OrderAdded(input.order_id, input.instrument, input.price, input.count, input.type == input_sell,
+				//     output_time);
 				break;
 			}
 		}
+		std::cout <<"should release the locks..."<<std::endl;
+
 
 		// Additionally:
 
 		// Remember to take timestamp at the appropriate time, or compute
 		// an appropriate timestamp!
-		intmax_t output_time = getCurrentTimestamp();
+		// intmax_t output_time = getCurrentTimestamp();
 
 		// Check the parameter names in `io.hpp`.
-		Output::OrderExecuted(123, 124, 1, 2000, 10, output_time);
+		//Output::OrderExecuted(123, 124, 1, 2000, 10, output_time);
 	}
 }
 
