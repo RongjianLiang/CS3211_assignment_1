@@ -110,14 +110,14 @@ void Engine::connection_thread(ClientConnection connection)
 					// acquire the buy mutex
 					// const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
 					buy_orderbook.QueryAndCancelOrder(input, output_time, cancel_in_buy);
-					std::cout <<"is it cancelled in buy? " << cancel_in_sell <<std::endl;
+					std::cout <<"is it cancelled in buy? " << cancel_in_buy <<std::endl;
 				}
 
 				{
 					// acquire the sell mutex
 					// const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
 					sell_orderbook.QueryAndCancelOrder(input, output_time,cancel_in_sell);
-					std::cout <<"is it cancelled in sell? " << cancel_in_sell <<std::endl;
+					std::cout <<"is it cancelled in sell? " << cancel_in_buy <<std::endl;
 				}
 				// either one success would call the following output
 				Output::OrderDeleted(input.order_id, (cancel_in_buy || cancel_in_sell), output_time);
