@@ -63,13 +63,13 @@ void Engine::connection_thread(ClientConnection connection)
 					}
 
 					// check if input order has been fully filled, add to buy book if not, need to acqurie buy mutex here 
-					if(input.count > 0){
-						std::cout << "should only execute this code after matching with remaining units..."<<std::endl;
-						uint32_t time = getCurrentTimestamp();
-						const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
-						buy_orderbook.AddtoBookwithTimeStamp(input, time);
-						Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
-					}
+					// if(input.count > 0){
+					// 	std::cout << "should only execute this code after matching with remaining units..."<<std::endl;
+					// 	uint32_t time = getCurrentTimestamp();
+					// 	const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
+					// 	buy_orderbook.AddtoBookwithTimeStamp(input, time);
+					// 	Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
+					// }
 				}
 				break;
 			}
