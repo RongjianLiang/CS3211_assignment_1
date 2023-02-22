@@ -124,11 +124,7 @@ void Engine::connection_thread(ClientConnection connection)
 				};
 				
 				// either one success would call the following output
-				if(cancel_in_buy || cancel_in_sell){
-					Output::OrderDeleted(input.order_id, true, output_time);
-				} else{
-					break;
-				}
+				Output::OrderDeleted(input.order_id, (cancel_in_buy || cancel_in_sell), output_time);
 			}
 
 			default: {
