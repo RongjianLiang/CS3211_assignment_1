@@ -92,6 +92,8 @@ public:
 		for(auto it = this->books.begin(); it != this->books.end(); it++){
 			if((*it).order_id == input.order_id){
 				// compare the timestamp and check if the order is fully filled 
+				std::cout << "past time-stamp: "<< (*it).time_stamp <<std::endl;
+				std::cout << "new time-stamp: "<< time_stamp <<std::endl;
 				result = (((*it).time_stamp < time_stamp) && (*it).count > 0); 
 				break;
 			}
