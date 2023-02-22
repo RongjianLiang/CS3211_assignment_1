@@ -103,6 +103,7 @@ void Engine::connection_thread(ClientConnection connection)
 			case input_cancel: {
 				SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
 				auto output_time = getCurrentTimestamp(); // shall we protect the time variable as well?
+				SyncCerr {} << "current timestamp: " << output_time << std::endl;
 				bool cancel_in_buy = false;
 				bool cancel_in_sell = false;
 				{
