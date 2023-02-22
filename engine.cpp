@@ -44,7 +44,7 @@ void Engine::connection_thread(ClientConnection connection)
 					uint32_t time = getCurrentTimestamp();
 					const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
 					buy_orderbook.AddtoBookwithTimeStamp(input, time);
-					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
+					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,false,time);
 				}
 				else { // the matching orderbook is non-empty, then perform the matching 
 					sell_orderbook.SortOrders();
