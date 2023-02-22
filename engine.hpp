@@ -13,6 +13,12 @@
 
 #include "io.hpp"
 
+// a timstamping scheme should be implemented here?
+inline std::chrono::microseconds::rep getCurrentTimestamp() noexcept
+{
+	return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
 struct Engine
 {
 public:
@@ -32,7 +38,7 @@ public:
 	uint32_t execution_ID;
 	uint32_t time_stamp; // probably retrieve time-stamps from a global variable protected by mutex
 	char* instrument[9];
-	char* type;
+	std::string type;
 	bool matched;
 
 	// Default constructor
@@ -53,7 +59,7 @@ class OrderBook{
 	public:
 		std::vector<RestOrder>books;
 		char* inst_type[9]; // orders inside this book shall have same instrument
-		char* type;			// orders inside this book shall have same type
+		std::string type;			// orders inside this book shall have same type
 
 public:
 	// Default constructor
@@ -62,7 +68,7 @@ public:
 	};
 
 	void setInst (char* inst){
-		std::memcpy(this->type, type, 9);
+		std::memcpy(&(this->type), inst, 9);
 	}
 
 	// add order from client command and time-stamping
@@ -78,11 +84,11 @@ public:
 		// sort by price & check validity
 		std::sort(this->books.begin(), this->books.end(),[this](const RestOrder& a, const RestOrder& b)
 		{
-			if(a.price != b.price && this->type == "S"){
+			if(a.price != b.price && (((this->type).compare("S"))== 0)) {
 				// orderbook is all selling orders, sort the price in descending order
 				return a.price < b.price;
 			}
-			if(a.price != b.price && this->type == "B"){
+			if(a.price != b.price && (((this->type).compare("B"))== 0)) {
 				// orderbook is all buying orders, sort the price in ascending order
 				return a.price > b.price;
 			}
@@ -98,10 +104,12 @@ public:
 	// implement checking for inst for initial testing 
 	// erase fully executed orders from orderbook at the end  
 	void MatchOrders (ClientCommand& input){
+		bool thisIsBuy = (this->type.compare("B") == 0);
+		bool thisIsSell = (this->type.compare("S") == 0);
 		for(auto it = this->books.rbegin(); it != this->books.rend(); it++){
 			// B price > S price
-			if((this->type == "B" && (*it).price >= input.price && *(*it).instrument == input.instrument) || 
-			   (this->type == "S" && (*it).price <= input.price && *(*it).instrument == input.instrument)){
+			if((thisIsBuy && (*it).price >= input.price && *(*it).instrument == input.instrument) || 
+			   (thisIsSell && (*it).price <= input.price && *(*it).instrument == input.instrument)){
 				// new order fully filled, with resting order fully or partially filled
 				if(input.count <= (*it).count){
 				(*it).execution_ID ++;
@@ -169,11 +177,4 @@ class BookShelf{
 		}
 	}
 };
-
-// a timstamping scheme should be implemented here?
-inline std::chrono::microseconds::rep getCurrentTimestamp() noexcept
-{
-	return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-}
-
 #endif
