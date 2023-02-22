@@ -36,7 +36,7 @@ public:
 	uint32_t price;
 	uint32_t count;
 	uint32_t execution_ID;
-	uint32_t time_stamp; // probably retrieve time-stamps from a global variable protected by mutex
+	std::chrono::microseconds::rep time_stamp; // probably retrieve time-stamps from a global variable protected by mutex
 	char* instrument[9];
 	std::string type;
 	bool matched;
