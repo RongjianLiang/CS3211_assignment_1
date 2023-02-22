@@ -1,5 +1,6 @@
 #include <iostream>
 #include <thread>
+#include <mutex>
 
 #include "io.hpp"
 #include "engine.hpp"
@@ -8,6 +9,10 @@
 OrderBook buy_orderbook = OrderBook();
 OrderBook sell_orderbook = OrderBook();
 //BookShelf book_shelf= BookShelf(buy_orderbook, sell_orderbook);
+
+std::mutex buy_mutex;
+std::mutex sell_mutex;
+std::mutex cancel_mutex;
 
 void Engine::accept(ClientConnection connection)
 {
@@ -32,7 +37,9 @@ void Engine::connection_thread(ClientConnection connection)
 		switch(input.type)
 		{
 			case input_buy:{
-			// simply add to buy book if the sell orderbook is empty 
+				// acquire the buy mutex
+				const std::lock_guard<std::mutex> lock (buy_mutex);
+				// simply add to buy book if the sell orderbook is empty 
 				if (sell_orderbook.books.empty()){
 					buy_orderbook.AddtoBookAndTimeStamp(input);
 				}
@@ -59,7 +66,9 @@ void Engine::connection_thread(ClientConnection connection)
 				}
 			}
 			case input_sell:{
-			// simply add to sell orderbook if the buy orderbook is empty 
+				// acquire the sell mutex
+				const std::lock_guard<std::mutex> lock (sell_mutex);
+				// simply add to sell orderbook if the buy orderbook is empty 
 				if (buy_orderbook.books.empty()){
 					sell_orderbook.AddtoBookAndTimeStamp(input);
 				}
@@ -88,10 +97,19 @@ void Engine::connection_thread(ClientConnection connection)
 			case input_cancel: {
 				// SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
 				auto output_time = getCurrentTimestamp();
-				// check sell order book
-				bool cancel_in_sell = sell_orderbook.QueryAndCancelOrder(input, output_time);
-				// check buy order book
-				bool cancel_in_buy = buy_orderbook.QueryAndCancelOrder(input, output_time);
+				bool cancel_in_buy, cancel_in_sell = false;
+				{
+					// acquire the sell mutex
+					const std::lock_guard<std::mutex> lock (sell_mutex);
+					bool cancel_in_sell = sell_orderbook.QueryAndCancelOrder(input, output_time);
+				};
+
+				{
+					// acquire the buy mutex
+					const std::lock_guard<std::mutex> lock (buy_mutex);
+					bool cancel_in_buy = buy_orderbook.QueryAndCancelOrder(input, output_time);
+				};
+				
 				// either one success would call the following output
 				if(cancel_in_buy || cancel_in_sell){
 					Output::OrderDeleted(input.order_id, true, output_time);
