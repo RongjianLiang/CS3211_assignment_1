@@ -101,7 +101,7 @@ void Engine::connection_thread(ClientConnection connection)
 			}
 			case input_cancel: {
 				// SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
-				auto output_time = getCurrentTimestamp();
+				auto output_time = getCurrentTimestamp(); // shall we protect the time variable as well?
 				bool cancel_in_buy = false;
 				bool cancel_in_sell = false;
 				{
@@ -119,8 +119,9 @@ void Engine::connection_thread(ClientConnection connection)
 				// either one success would call the following output
 				if(cancel_in_buy || cancel_in_sell){
 					Output::OrderDeleted(input.order_id, true, output_time);
+				} else{
+					break;
 				}
-				break;
 			}
 
 			default: {
