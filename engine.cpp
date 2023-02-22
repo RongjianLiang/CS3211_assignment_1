@@ -40,9 +40,11 @@ void Engine::connection_thread(ClientConnection connection)
 				const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
 				// simply add to buy book if the sell orderbook is empty, need to acquire buy orderbook mutex here 
 				if (sell_orderbook.books.empty()){
-					std::cout << "empty sell orderbook" << std::endl;
+					// std::cout << "empty sell orderbook" << std::endl;
+					uint32_t time = getCurrentTimestamp();
 					const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
-					buy_orderbook.AddtoBookAndTimeStamp(input);
+					buy_orderbook.AddtoBookwithTimeStamp(input, time);
+					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
 				}
 				else { // the matching orderbook is non-empty, then perform the matching 
 					sell_orderbook.SortOrders();
@@ -63,8 +65,10 @@ void Engine::connection_thread(ClientConnection connection)
 
 					// check if input order has been fully filled, add to buy book if not, need to acqurie buy mutex here 
 					if(input.count > 0){
+						uint32_t time = getCurrentTimestamp();
 						const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
-						buy_orderbook.AddtoBookAndTimeStamp(input);
+						buy_orderbook.AddtoBookwithTimeStamp(input, time);
+						Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
 					}
 				}
 			}
@@ -74,7 +78,7 @@ void Engine::connection_thread(ClientConnection connection)
 				// simply add to sell orderbook if the buy orderbook is empty, need to acquire sell mutex
 				if (buy_orderbook.books.empty()){
 					const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
-					sell_orderbook.AddtoBookAndTimeStamp(input);
+					sell_orderbook.AddtoBookwithTimeStamp(input);
 				}
 				else {
 					buy_orderbook.SortOrders();
@@ -96,7 +100,7 @@ void Engine::connection_thread(ClientConnection connection)
 					// check if input order has been fully flled, add to sell book if not, need to acquire sell mutex here
 					if(input.count > 0){
 						const std::lock_guard<std::mutex> lock (sell_order_book_mutex);
-						sell_orderbook.AddtoBookAndTimeStamp(input);
+						sell_orderbook.AddtoBookwithTimeStamp(input);
 					}
 				}
 			}

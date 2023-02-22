@@ -72,10 +72,10 @@ public:
 	}
 
 	// add order from client command and time-stamping
-	void AddtoBookAndTimeStamp(ClientCommand& input){
+	void AddtoBookwithTimeStamp(ClientCommand& input, uint32_t time){
 		// this section should be protected 
 		RestOrder order = RestOrder(input); // the RestOrder constructor should time-stamp
-		order.time_stamp = getCurrentTimestamp();
+		order.time_stamp = time;
 		books.push_back(order); 
 	};
 
