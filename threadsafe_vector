@@ -1,0 +1,13 @@
+#include <algorithm>
+class threadsafe_vector
+{
+private:
+    mutable std::mutex mut;
+    std::vector<T> data_vector;
+    std::condition_variable data_cond;
+
+public:
+    threadsafe_vector()
+    {}
+    void 
+}
