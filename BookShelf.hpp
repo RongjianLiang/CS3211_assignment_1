@@ -1,15 +1,32 @@
+#include <unordered_map>
+#include <memory>
+#include <shared_mutex>
+
+#include "io.hpp"
+#include "OrderBook.cpp"
+
+class Instrument
+{
+private:
+public:
+    std::mutex instrument_buy_book_mutex;
+    std::mutex instrument_sell_book_mutex;
+    OrderBook sellBook = OrderBook();
+    OrderBook buyBook = OrderBook();   
+    
+    Instrument() {}
+};
+
 class BookShelf
 {
-    std::unordered_map<std::string, Instrument&> myMap;
+private:
+    std::shared_mutex bookshelf_mutex;
+    std::unordered_map<std::string, std::shared_ptr<Instrument>> bookShelf;
+
+    void addInstrumentBooks(std::string instrumentName);
+    std::shared_ptr<Instrument> getInstrumentBooks(std::string instrumentName);
 
 public:
-	void addToShelf (OrderBook orderbook){
-		shelf.push_back(orderbook);
-	}
-
-	OrderBook& getInstrumentSellBook(ClientCommand input){
-	}
-	
-    OrderBook& getInstrumentBuyBook(ClientCommand input){
-	}
+    std::shared_ptr<Instrument> getInstrumentBooksIfExistOrElseAddAndGet(std::string instrumentName);
 };
+
