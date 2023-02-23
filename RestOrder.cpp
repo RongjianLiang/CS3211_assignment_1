@@ -27,5 +27,7 @@ public:
 		// uint32_t time_stamp = 
 		std::memcpy(instrument, command.instrument, 9);
 	};
+
+	// Move constructor 
 };
 

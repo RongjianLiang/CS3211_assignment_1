@@ -1,4 +1,5 @@
-#include <algorithm>
+# include <vector>
+# include <algorithm>
 class threadsafe_vector
 {
 private:

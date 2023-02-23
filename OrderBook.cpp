@@ -5,9 +5,9 @@ class OrderBook
 {
 public:
     std::vector<RestOrder>books;
-    char* inst_type[9]; // orders inside this book shall have same instrument
-    std::string type;			// orders inside this book shall have same type
-
+    char* inst_type[9];
+    std::string type;	
+	
 	// Default constructor
 	OrderBook(){
 		//this->type = type;
