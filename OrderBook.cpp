@@ -1,12 +1,11 @@
 #include "RestOrder.cpp"
 #include <algorithm>
+#include <unordered_map>
 
 class OrderBook
 {
 public:
     std::vector<RestOrder>books;
-    char* inst_type[9];
-    std::string type;	
 	
 	// Default constructor
 	OrderBook(){
@@ -20,13 +19,13 @@ public:
 	// add order from client command and time-stamping
 	void AddtoBookwithTimeStamp(ClientCommand& input, uint32_t time, std::unordered_map<uint32_t, std::string>& orderIdsToInstrumentsMap){
 		// this section should be protected 
-		std::cout << "inside adder..."<<std::endl;
+		// std::cout << "inside adder..."<<std::endl;
 		RestOrder order = RestOrder(input); // the RestOrder constructor should time-stamp
 		order.time_stamp = time;
 		
 		books.push_back(order);
 		orderIdsToInstrumentsMap.insert({input.order_id, std::string(input.instrument)});
-		std::cout << "exiting adder..." <<std::endl;
+		// std::cout << "exiting adder..." <<std::endl;
 	};
 
 	// sort the vector contains orders
@@ -55,38 +54,29 @@ public:
 	// erase fully executed orders from orderbook at the end  
 	void MatchOrders (ClientCommand& input, std::unordered_map<uint32_t, std::string>& orderIdsToInstrumentsMap){
 		bool matched = false;
-        bool thisIsBuy = (this->type.compare("B") == 0);
-		bool thisIsSell = (this->type.compare("S") == 0);
+        bool isBuy = (input.type.compare("B") == 0);
 		for(auto it = this->books.rbegin(); it != this->books.rend(); it++){
 			// B price > S price
-			if((thisIsBuy && (*it).price >= input.price && *(*it).instrument == input.instrument) || 
-			   (thisIsSell && (*it).price <= input.price && *(*it).instrument == input.instrument)){
+			if((isBuy && (*it).price >= input.price && *(*it).instrument == input.instrument) || 
+			   (!isBuy && (*it).price <= input.price && *(*it).instrument == input.instrument)){
                 matched = true;
-				// new order fully filled, with resting order fully or partially filled
-				if(input.count <= (*it).count){
 				(*it).execution_ID ++;
 				(*it).matched = true;
-				(*it).count -= input.count;
-				input.count = 0;
+				// new order fully filled, with resting order fully or partially filled
+				if(input.count <= (*it).count){
+				    (*it).count -= input.count;
+				    input.count = 0;
 				}
 				// new order partially or fully filed, with resting order fully filled 
 				if(input.count >= (*it).count){
-				(*it).execution_ID ++;
-				(*it).matched = true;
-				(*it).count = 0;
-				input.count -= (*it).count;
+				    input.count -= (*it).count;
+				    (*it).count = 0;
 				}
 			} 
 			else {
 				continue;
 			}			
 		}
-		// erase fully executed orders from orderbook at the end 
-		if (matched) {
-            orderIdsToInstrumentsMap.at(input.order_id);
-            //orderIdsToInstrumentsMap.erase(input.order_id);
-        }
-		// auto erased = std::erase_if(this->books, [](RestOrder order){ return (order.count == 0);});
 	}
 	
 	// return true if successfully cancelled and delete the order by std::vector.erase
@@ -100,10 +90,10 @@ public:
 		for(auto it = this->books.begin(); it != this->books.end(); it++){
 			if((*it).order_id == input.order_id){
 				// compare the timestamp and check if the order is fully filled 
-				std::cout << "timestamp check: "<< ((*it).time_stamp < time_stamp) <<std::endl;
-				std::cout << "count check: "<< ((*it).count > 0) << std::endl;
+				// std::cout << "timestamp check: "<< ((*it).time_stamp < time_stamp) <<std::endl;
+				// std::cout << "count check: "<< ((*it).count > 0) << std::endl;
 				result = (((*it).time_stamp < time_stamp) && ((*it).count > 0)); 
-				std::cout << "result: " << result << std::endl;
+				// std::cout << "result: " << result << std::endl;
 				break;
 			}
 			index ++;
