@@ -48,48 +48,50 @@ void Engine::connection_thread(ClientConnection connection)
 					// acquire the sell mutex
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
 					sell_orderbook.SortOrders();
-					sell_orderbook.MatchOrders(input, orderIdsToInstrumentsMap);
+					sell_orderbook.MatchOrders(input);
 					chrono_reps output_time = getCurrentTimestamp();
 
 					// loop through the books for matched orders
-					for(auto it = sell_orderbook.books.rbegin(); it != sell_orderbook.books.rend(); it++){
+					for(auto it = sell_orderbook.books.begin(); it != sell_orderbook.books.end();){
 						if((*it).matched == true){
-							Output::OrderExecuted(input.order_id,(*it).order_id,(*it).execution_ID,
-							(*it).price,(*it).count,output_time);
+							Output::OrderExecuted((*it).order_id, input.order_id, (*it).execution_ID,
+							(*it).price,(*it).trades,output_time);
 							(*it).matched = false; // reset matched state
 							(*it).time_stamp = output_time; // update the timestamp after execution, for cancelling orders
 		                    // erase fully executed orders from orderbook at the end 
 		                    // auto erased = std::erase_if(this->books, [](RestOrder order){ return (order.count == 0);});
                             if ((*it).count == 0) {
-                                sell_orderbook.erase(it); 
+                                it = sell_orderbook.books.erase(it);
                                 orderIdsToInstrumentsMap.erase((*it).order_id);
                             }
-						}/* else {
+                            else {
+                                ++it;
+                            }
+						} else {
 							break; // no more matched order near the beginning 
-						}*/
+						}
 					}
                     
-                    // TOOD partial fulfillment
-
 					// check if input order has been fully filled, add to buy book if not, need to acqurie buy mutex here 
-					// if(input.count > 0){
-					// 	std::cout << "should only execute this code after matching with remaining units..."<<std::endl;
-					// 	chrono_reps time = getCurrentTimestamp();
-					// 	const std::lock_guard<std::mutex> lock (buy_order_book_mutex);
-					// 	buy_orderbook.AddtoBookwithTimeStamp(input, time, orderIdsToInstrumentsMap);
-					// 	Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
-					// }
+					if(input.count > 0){
+					chrono_reps time = getCurrentTimestamp();
+					const std::lock_guard<std::mutex> lock {instrumentPtr->instrument_buy_book_mutex};
+					(instrumentPtr->buyBook).AddtoBookwithTimeStamp(input, time, orderIdsToInstrumentsMap);
+					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,false,time);
+					}
 				}
 				break;
 			}
-			case input_sell:{
+			case input_sell:
+            {
 				// get the instrument - for cancel, this is an empty instrumentName
 				std::shared_ptr<Instrument> instrumentPtr = bookShelf.getInstrumentBooksIfExistOrElseAddAndGet(std::string(input.instrument));
                 OrderBook& buy_orderbook = instrumentPtr->buyBook;
-				// simply add to sell orderbook if the buy orderbook is empty, need to acquire sell mutex
+		
+    		// simply add to sell orderbook if the buy orderbook is empty, need to acquire sell mutex
 				if (buy_orderbook.books.empty()){
-					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
 					chrono_reps time = getCurrentTimestamp();
+					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
 					(instrumentPtr->sellBook).AddtoBookwithTimeStamp(input,time, orderIdsToInstrumentsMap);
 					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
 				}
@@ -97,45 +99,59 @@ void Engine::connection_thread(ClientConnection connection)
 					// acquire the buy mutex
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_buy_book_mutex};
 					buy_orderbook.SortOrders();
-					buy_orderbook.MatchOrders(input, orderIdsToInstrumentsMap);
+					buy_orderbook.MatchOrders(input);
 					chrono_reps output_time = getCurrentTimestamp();
 
 					// loop through the books for matched orders
-					for (auto it = buy_orderbook.books.rbegin(); it != buy_orderbook.books.rend(); it++){
+					for (auto it = buy_orderbook.books.begin(); it != buy_orderbook.books.end(); it++){
 						if((*it).matched == true){
-							Output::OrderExecuted(input.order_id,(*it).order_id,(*it).execution_ID,
-							(*it).price,(*it).count,output_time);
+							Output::OrderExecuted((*it).order_id, input.order_id, (*it).execution_ID,
+							(*it).price,(*it).trades,output_time);
 							(*it).matched = false; // rest matched state
 							(*it).time_stamp = output_time; // update the timestamps, for cancelling orders 
-						} /*else {
+                            if ((*it).count == 0) {
+                                it = buy_orderbook.books.erase(it);
+                                orderIdsToInstrumentsMap.erase((*it).order_id);
+                            }
+                            else {
+                                ++it;
+                            }
+                        } else {
 							break;
-						}*/
+						}
 					}
 
 					// check if input order has been fully flled, add to sell book if not, need to acquire sell mutex here
 					if(input.count > 0) {
-                        const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
-						chrono_reps time = getCurrentTimestamp();
-						(instrumentPtr->sellBook).AddtoBookwithTimeStamp(input, time, orderIdsToInstrumentsMap);
+					    chrono_reps time = getCurrentTimestamp();
+					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
+					    (instrumentPtr->sellBook).AddtoBookwithTimeStamp(input,time, orderIdsToInstrumentsMap);
+					    Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
 					}
 				}
 				break;
 			}
 			case input_cancel: {
-				SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
-				auto output_time = getCurrentTimestamp(); // shall we protect the time variable as well?
-				SyncCerr {} << "current timestamp: " << output_time << std::endl;
-				
 				// is there a mutex supposed to be here? There is no guarantee on cancelled order right, if another B/S thread comes at the same time and is served first?
-				std::string instrumentName = getInstrumentForOrderId(input.order_id);
+				std::string instrumentName;
+                chrono_reps output_time;	
+                if (orderIdsToInstrumentsMap.contains(input.order_id)) {
+                    instrumentName = getInstrumentForOrderId(input.order_id);
+                }
+                else {
+                    output_time = getCurrentTimestamp();
+				    Output::OrderDeleted(input.order_id, 0, output_time);
+                    break;
+                }
 
 				std::shared_ptr<Instrument> instrumentPtr = bookShelf.getInstrumentBooksIfExistOrElseAddAndGet(instrumentName);
-				
+			    
 				bool cancel_in_buy = false;
 				bool cancel_in_sell = false;
 				{
 					// acquire the buy mutex
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_buy_book_mutex};
+                    output_time = getCurrentTimestamp();
 					(instrumentPtr->buyBook).QueryAndCancelOrder(input, output_time, cancel_in_buy, orderIdsToInstrumentsMap);
 					// std::cout <<"is it cancelled in buy? " << cancel_in_buy <<std::endl;
 				}
@@ -143,6 +159,7 @@ void Engine::connection_thread(ClientConnection connection)
 				{
 					// acquire the sell mutex
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
+                    output_time = getCurrentTimestamp();
                     (instrumentPtr->sellBook).QueryAndCancelOrder(input, output_time,cancel_in_sell, orderIdsToInstrumentsMap);
 					// std::cout <<"is it cancelled in sell? " << cancel_in_sell <<std::endl;
 				}

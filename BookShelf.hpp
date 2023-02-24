@@ -11,8 +11,8 @@ private:
 public:
     std::mutex instrument_buy_book_mutex;
     std::mutex instrument_sell_book_mutex;
-    OrderBook sellBook = OrderBook();
-    OrderBook buyBook = OrderBook();   
+    SellOrderBook sellBook = SellOrderBook();
+    BuyOrderBook buyBook = BuyOrderBook();   
     
     Instrument() {}
 };
