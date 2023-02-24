@@ -54,12 +54,14 @@ public:
 	// implement checking for inst for initial testing 
 	// erase fully executed orders from orderbook at the end  
 	void MatchOrders (ClientCommand& input, std::unordered_map<uint32_t, std::string>& orderIdsToInstrumentsMap){
-		bool thisIsBuy = (this->type.compare("B") == 0);
+		bool matched = false;
+        bool thisIsBuy = (this->type.compare("B") == 0);
 		bool thisIsSell = (this->type.compare("S") == 0);
 		for(auto it = this->books.rbegin(); it != this->books.rend(); it++){
 			// B price > S price
 			if((thisIsBuy && (*it).price >= input.price && *(*it).instrument == input.instrument) || 
 			   (thisIsSell && (*it).price <= input.price && *(*it).instrument == input.instrument)){
+                matched = true;
 				// new order fully filled, with resting order fully or partially filled
 				if(input.count <= (*it).count){
 				(*it).execution_ID ++;
@@ -80,7 +82,10 @@ public:
 			}			
 		}
 		// erase fully executed orders from orderbook at the end 
-		// orderIdsToInstrumentsMap.delete({input.order_id, std::string(input.instrument)});
+		if (matched) {
+            orderIdsToInstrumentsMap.at(input.order_id);
+            //orderIdsToInstrumentsMap.erase(input.order_id);
+        }
 		// auto erased = std::erase_if(this->books, [](RestOrder order){ return (order.count == 0);});
 	}
 	
