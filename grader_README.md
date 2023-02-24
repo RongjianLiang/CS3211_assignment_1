@@ -40,7 +40,6 @@ One or more threads failed
 
 In this case, order 126 is fully executed, so "S 126 ..." was unexpected.
 
-
 ## Phase 2: Validity checking
 
 In the second phase, we try to check if the engine's output was valid.
@@ -100,7 +99,6 @@ The full list of the phase 2 errors is here:
   - The active order already has 0 quantity, so it should not be added to the book
 - "booking inactive order"
   - An order was added to the order book
-
 
 # Grader testcase format
 
