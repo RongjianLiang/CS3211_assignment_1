@@ -39,8 +39,8 @@ void Engine::connection_thread(ClientConnection connection)
 				
                 // simply add to buy book if the sell orderbook is empty, need to acquire buy orderbook mutex here 
 				if (sell_orderbook.books.empty()){
-					chrono_reps time = getCurrentTimestamp();
 					const std::lock_guard<std::mutex> lock {instrumentPtr->instrument_buy_book_mutex};
+					chrono_reps time = getCurrentTimestamp();
 					(instrumentPtr->buyBook).AddtoBookwithTimeStamp(input, time, orderIdsToInstrumentsMap);
 					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,false,time);
 				}
@@ -49,11 +49,11 @@ void Engine::connection_thread(ClientConnection connection)
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
 					sell_orderbook.SortOrders();
 					sell_orderbook.MatchOrders(input);
-					chrono_reps output_time = getCurrentTimestamp();
 
 					// loop through the books for matched orders
 					for(auto it = sell_orderbook.books.begin(); it != sell_orderbook.books.end();){
 						if((*it).matched == true){
+							chrono_reps output_time = getCurrentTimestamp();
 							Output::OrderExecuted((*it).order_id, input.order_id, (*it).execution_ID, (*it).price,(*it).trades,output_time);
 							(*it).matched = false; // reset matched state
 							(*it).time_stamp = output_time; // update the timestamp after execution, for cancelling orders
@@ -73,8 +73,8 @@ void Engine::connection_thread(ClientConnection connection)
                     
 					// check if input order has been fully filled, add to buy book if not, need to acqurie buy mutex here 
 					if(input.count > 0){
-					chrono_reps time = getCurrentTimestamp();
 					const std::lock_guard<std::mutex> lock {instrumentPtr->instrument_buy_book_mutex};
+					chrono_reps time = getCurrentTimestamp();
 					(instrumentPtr->buyBook).AddtoBookwithTimeStamp(input, time, orderIdsToInstrumentsMap);
 					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,false,time);
 					}
@@ -89,8 +89,8 @@ void Engine::connection_thread(ClientConnection connection)
 		
     		// simply add to sell orderbook if the buy orderbook is empty, need to acquire sell mutex
 				if (buy_orderbook.books.empty()){
-					chrono_reps time = getCurrentTimestamp();
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
+					chrono_reps time = getCurrentTimestamp();
 					(instrumentPtr->sellBook).AddtoBookwithTimeStamp(input,time, orderIdsToInstrumentsMap);
 					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
 				}
@@ -99,11 +99,11 @@ void Engine::connection_thread(ClientConnection connection)
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_buy_book_mutex};
 					buy_orderbook.SortOrders();
 					buy_orderbook.MatchOrders(input);
-					chrono_reps output_time = getCurrentTimestamp();
 
 					// loop through the books for matched orders
 					for (auto it = buy_orderbook.books.begin(); it != buy_orderbook.books.end();){
 						if((*it).matched == true){
+							chrono_reps output_time = getCurrentTimestamp();
 							Output::OrderExecuted((*it).order_id, input.order_id, (*it).execution_ID,
 							(*it).price,(*it).trades,output_time);
 							(*it).matched = false; // rest matched state
@@ -122,8 +122,8 @@ void Engine::connection_thread(ClientConnection connection)
 
 					// check if input order has been fully flled, add to sell book if not, need to acquire sell mutex here
 					if(input.count > 0) {
-					    chrono_reps time = getCurrentTimestamp();
-					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
+						const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
+						chrono_reps time = getCurrentTimestamp();
 					    (instrumentPtr->sellBook).AddtoBookwithTimeStamp(input,time, orderIdsToInstrumentsMap);
 					    Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
 					}
@@ -139,6 +139,7 @@ void Engine::connection_thread(ClientConnection connection)
                 }
                 else {
                     output_time = getCurrentTimestamp();
+					std::cout << "order deleted"<<std::endl;
 				    Output::OrderDeleted(input.order_id, 0, output_time);
                     break;
                 }
@@ -159,6 +160,7 @@ void Engine::connection_thread(ClientConnection connection)
 					// acquire the sell mutex
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
                     output_time = getCurrentTimestamp();
+					
                     (instrumentPtr->sellBook).QueryAndCancelOrder(input, output_time,cancel_in_sell, orderIdsToInstrumentsMap);
 					// std::cout <<"is it cancelled in sell? " << cancel_in_sell <<std::endl;
 				}
