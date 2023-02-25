@@ -114,6 +114,7 @@ public:
 				    (*it).count = 0;
 				}
 			} 
+            SyncCerr {} << (*it).count << std::endl;
 		}
 	}
 
