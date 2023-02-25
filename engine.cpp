@@ -54,8 +54,7 @@ void Engine::connection_thread(ClientConnection connection)
 					// loop through the books for matched orders
 					for(auto it = sell_orderbook.books.begin(); it != sell_orderbook.books.end();){
 						if((*it).matched == true){
-							Output::OrderExecuted((*it).order_id, input.order_id, (*it).execution_ID,
-							(*it).price,(*it).trades,output_time);
+							Output::OrderExecuted((*it).order_id, input.order_id, (*it).execution_ID, (*it).price,(*it).trades,output_time);
 							(*it).matched = false; // reset matched state
 							(*it).time_stamp = output_time; // update the timestamp after execution, for cancelling orders
 		                    // erase fully executed orders from orderbook at the end 
@@ -103,7 +102,7 @@ void Engine::connection_thread(ClientConnection connection)
 					chrono_reps output_time = getCurrentTimestamp();
 
 					// loop through the books for matched orders
-					for (auto it = buy_orderbook.books.begin(); it != buy_orderbook.books.end(); it++){
+					for (auto it = buy_orderbook.books.begin(); it != buy_orderbook.books.end();){
 						if((*it).matched == true){
 							Output::OrderExecuted((*it).order_id, input.order_id, (*it).execution_ID,
 							(*it).price,(*it).trades,output_time);

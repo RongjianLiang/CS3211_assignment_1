@@ -59,7 +59,7 @@ public:
 	void MatchOrders(ClientCommand& input) {
 		for(auto it = this->books.begin(); it != this->books.end(); it++){
 			// B price > S price
-			if ((*it).price >= input.price){
+			if ((*it).price >= input.price && input.count > 0){
 				(*it).execution_ID ++;
 				(*it).matched = true;
 				// new order fully filled, with resting order fully or partially filled
@@ -69,7 +69,7 @@ public:
 				    input.count = 0;
 				}
 				// new order partially or fully filed, with resting order fully filled 
-				if(input.count >= (*it).count){
+				else if(input.count >= (*it).count){
 				    (*it).trades = (*it).count;
 				    input.count -= (*it).count;
 				    (*it).count = 0;
@@ -98,7 +98,7 @@ public:
 	void MatchOrders (ClientCommand& input) {
 		for(auto it = this->books.begin(); it != this->books.end(); it++){
 			// B price > S price
-			if ((*it).price <= input.price) {
+			if ((*it).price <= input.price && input.count > 0) {
 				(*it).execution_ID ++;
 				(*it).matched = true;
 				// new order fully filled, with resting order fully or partially filled
@@ -108,12 +108,13 @@ public:
 				    input.count = 0;
 				}
 				// new order partially or fully filed, with resting order fully filled 
-				if(input.count >= (*it).count){
+				else if(input.count >= (*it).count){
 				    (*it).trades = (*it).count;
 				    input.count -= (*it).count;
 				    (*it).count = 0;
 				}
 			} 
+
 		}
 	}
 
