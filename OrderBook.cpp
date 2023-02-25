@@ -41,6 +41,7 @@ public:
 		if (result == true){
 			this->books.erase(books.begin() + index);
 			orderIdsToInstrumentsMap.erase(input.order_id);
+			std::cout << "cancelled"<<std::endl;
 		}
 		res = result;
 	}
