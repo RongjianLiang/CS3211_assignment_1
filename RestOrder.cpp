@@ -11,6 +11,7 @@ class RestOrder {
 public:
 	uint32_t order_id;
 	uint32_t price;
+	uint32_t trades;
 	uint32_t count;
 	uint32_t execution_ID;
 	chrono_reps time_stamp; // probably retrieve time-stamps from a global variable protected by mutex
