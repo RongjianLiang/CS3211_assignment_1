@@ -34,6 +34,7 @@ public:
 				// compare the timestamp and check if the order is fully filled 
 				result = (((*it).time_stamp < time_stamp) && ((*it).count != 0));
 				std::cout << (*it).count << std::endl;
+				std::cout << (result) << std::endl;
 				break;
 			}
 			index++;

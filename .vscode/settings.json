@@ -55,6 +55,7 @@
         "semaphore": "cpp",
         "stdexcept": "cpp",
         "thread": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "shared_mutex": "cpp"
     }
 }
