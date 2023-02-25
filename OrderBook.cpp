@@ -19,12 +19,7 @@ public:
 
 	// sort the vector contains orders
 	virtual void SortOrders() = 0; 
-	
-	// loop reversely and try to match, with validity check: B price > S price
-	// matchable resting orders would have their execution ID incremented 
-	// and have their "matched" member set to true for this match
-	// implement checking for inst for initial testing 
-	// erase fully executed orders from orderbook at the end  
+ 
 	virtual void MatchOrders(ClientCommand& input) = 0;
 	
 	// false if rejected, either deleted or not-exist
@@ -37,10 +32,7 @@ public:
 		for(auto it = this->books.begin(); it != this->books.end(); it++){
 			if((*it).order_id == input.order_id){
 				// compare the timestamp and check if the order is fully filled 
-				// std::cout << "timestamp check: "<< ((*it).time_stamp < time_stamp) <<std::endl;
-				// std::cout << "count check: "<< ((*it).count > 0) << std::endl;
-				result = (((*it).time_stamp < time_stamp) && ((*it).execution_ID == 0)); 
-				// std::cout << "result: " << result << std::endl;
+				result = (((*it).time_stamp < time_stamp) && ((*it).count == 0)); // check the count instead
 				break;
 			}
 			index++;
