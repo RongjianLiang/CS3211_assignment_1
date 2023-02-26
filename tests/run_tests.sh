@@ -10,7 +10,6 @@ popd
 
 run_individual_test () {
   BASE_FILENAME=$(basename "$1" .in)
-  echo $BASE_FILENAME
   CONTAINING_DIRECTORY=$(dirname "$1")
   mkdir -p "./results/${BASE_FILENAME}"
   cd "./results/${BASE_FILENAME}"

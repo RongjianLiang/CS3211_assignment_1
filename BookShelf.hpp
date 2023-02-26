@@ -12,7 +12,7 @@ public:
     std::mutex instrument_buy_book_mutex;
     std::mutex instrument_sell_book_mutex;
     SellOrderBook sellBook = SellOrderBook();
-    BuyOrderBook buyBook = BuyOrderBook();   
+    BuyOrderBook buyBook = BuyOrderBook();
     
     Instrument() {}
 };
@@ -28,5 +28,5 @@ private:
 
 public:
     std::shared_ptr<Instrument> getInstrumentBooksIfExistOrElseAddAndGet(std::string instrumentName);
+    std::unordered_map<uint32_t, std::string> orderIdsToInstrumentsMap;
 };
-

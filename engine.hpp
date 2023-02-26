@@ -32,7 +32,6 @@ public:
 
 private:
     BookShelf bookShelf{};
-   	std::unordered_map<uint32_t, std::string> orderIdsToInstrumentsMap;
 
 	std::string getInstrumentForOrderId(uint32_t order_id);
     void connection_thread(ClientConnection conn);
