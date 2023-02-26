@@ -66,7 +66,7 @@ void Engine::connection_thread(ClientConnection connection)
 		                    // auto erased = std::erase_if(this->books, [](RestOrder order){ return (order.count == 0);});
                             if ((*it).count == 0) {
                                 it = sell_orderbook.books.erase(it);
-                                orderIdsToInstrumentsMap.erase((*it).order_id);
+//                                 bookShelf.orderIdsToInstrumentsMap.erase((*it).order_id);
                             }
                             else {
                                 ++it;
@@ -120,7 +120,7 @@ void Engine::connection_thread(ClientConnection connection)
 							(*it).time_stamp = output_time; // update the timestamps, for cancelling orders 
                             if ((*it).count == 0) {
                                 it = buy_orderbook.books.erase(it);
-                                orderIdsToInstrumentsMap.erase((*it).order_id);
+//                                 bookShelf.orderIdsToInstrumentsMap.erase((*it).order_id);
                             }
                             else {
                                 ++it;
@@ -205,4 +205,3 @@ void Engine::connection_thread(ClientConnection connection)
 		//Output::OrderExecuted(123, 124, 1, 2000, 10, output_time);
 	}
 }
-

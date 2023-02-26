@@ -44,7 +44,7 @@ public:
 		// purge the order
 		if (result == true){
 			this->books.erase(books.begin() + index);
-			orderIdsToInstrumentsMap.erase(input.order_id);
+			orderIdsToInstrumentsMap.at(input.order_id);
 			SyncCerr {} << "cancelled"<<std::endl;
 		}
 		res = result;
