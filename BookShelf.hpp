@@ -25,8 +25,8 @@ private:
 
     void addInstrumentBooks(std::string instrumentName);
     std::shared_ptr<Instrument> getInstrumentBooks(std::string instrumentName);
-
 public:
     std::shared_ptr<Instrument> getInstrumentBooksIfExistOrElseAddAndGet(std::string instrumentName);
-    std::unordered_map<uint32_t, std::string> orderIdsToInstrumentsMap;
+    OrderIdsToInstrumentsMap oIdNameMap;
 };
+

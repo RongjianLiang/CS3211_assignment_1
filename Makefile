@@ -14,7 +14,7 @@ CXXFLAGS:= $(CXXFLAGS_THREAD)
 
 BUILDDIR = build
 
-SRCS = main.cpp engine.cpp io.cpp OrderBook.cpp RestOrder.cpp BookShelf.cpp
+SRCS = main.cpp engine.cpp io.cpp OrderBook.cpp RestOrder.cpp BookShelf.cpp OrderIdsToInstrumentsMap.cpp
 
 all: engine client
 

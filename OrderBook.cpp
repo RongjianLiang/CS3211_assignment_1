@@ -2,19 +2,21 @@
 #include <algorithm>
 #include <unordered_map>
 
+#include "OrderIdsToInstrumentsMap.cpp"
+
 class OrderBook
 {
 public:
     std::vector<RestOrder>books;
 	
 	// add order from client command and time-stamping
-	void AddtoBookwithTimeStamp(ClientCommand& input, uint32_t time, std::unordered_map<uint32_t, std::string>& orderIdsToInstrumentsMap){
+	void AddtoBookwithTimeStamp(ClientCommand& input, uint32_t time, OrderIdsToInstrumentsMap& orderIdsToInstrumentsMap){
 		// this section should be protected 
 		RestOrder order = RestOrder(input); // the RestOrder constructor should time-stamp
 		order.time_stamp = time;
 		
 		books.push_back(order);
-		orderIdsToInstrumentsMap.insert({input.order_id, std::string(input.instrument)});
+		orderIdsToInstrumentsMap.addOrderIdToInstruments(input.order_id, std::string(input.instrument));
 	};
 
 	// sort the vector contains orders
@@ -25,7 +27,7 @@ public:
 	// false if rejected, either deleted or not-exist
 	// attempt to cancel deleted order would simply return false, as no such match exists. 
 	// the timestamp is determined in engine.cpp 
-	void QueryAndCancelOrder(ClientCommand input, uint32_t time_stamp, bool& res, std::unordered_map<uint32_t, std::string>& orderIdsToInstrumentsMap){
+	void QueryAndCancelOrder(ClientCommand input, uint32_t time_stamp, bool& res){
 		bool result = false;
 		int index = 0;
 		
@@ -44,7 +46,6 @@ public:
 		// purge the order
 		if (result == true){
 			this->books.erase(books.begin() + index);
-			orderIdsToInstrumentsMap.at(input.order_id);
 			SyncCerr {} << "cancelled"<<std::endl;
 		}
 		res = result;

@@ -31,4 +31,3 @@ std::shared_ptr<Instrument> BookShelf::getInstrumentBooksIfExistOrElseAddAndGet(
     }
     return instrumentBooks;
 }
-

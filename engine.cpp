@@ -12,7 +12,7 @@ void Engine::accept(ClientConnection connection)
 }
 
 std::string Engine::getInstrumentForOrderId(uint32_t order_id) {
-	return bookShelf.orderIdsToInstrumentsMap.at(order_id);
+	return bookShelf.oIdNameMap.getInstrumentNameFromOrderId(order_id);
 }
 
 void Engine::connection_thread(ClientConnection connection)
@@ -36,7 +36,7 @@ void Engine::connection_thread(ClientConnection connection)
 				// get the instrument - for cancel, this is an empty instrumentName
 				std::shared_ptr<Instrument> instrumentPtr = bookShelf.getInstrumentBooksIfExistOrElseAddAndGet(std::string(input.instrument));
                 OrderBook& sell_orderbook = instrumentPtr->sellBook;
-				bool isSellOrderBookEmpty = false;
+				bool isSellOrderBookEmpty;
 				{
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
 					isSellOrderBookEmpty = sell_orderbook.books.empty();
@@ -46,7 +46,7 @@ void Engine::connection_thread(ClientConnection connection)
 				if (isSellOrderBookEmpty){
 					const std::lock_guard<std::mutex> lock {instrumentPtr->instrument_buy_book_mutex};
 					chrono_reps time = getCurrentTimestamp();
-					(instrumentPtr->buyBook).AddtoBookwithTimeStamp(input, time, bookShelf.orderIdsToInstrumentsMap);
+					(instrumentPtr->buyBook).AddtoBookwithTimeStamp(input, time, bookShelf.oIdNameMap);
 					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,false,time);
 				}
 				else { // the matching orderbook is non-empty, then perform the matching
@@ -80,7 +80,7 @@ void Engine::connection_thread(ClientConnection connection)
 					if(input.count > 0){
 					const std::lock_guard<std::mutex> lock {instrumentPtr->instrument_buy_book_mutex};
 					chrono_reps time = getCurrentTimestamp();
-					(instrumentPtr->buyBook).AddtoBookwithTimeStamp(input, time, bookShelf.orderIdsToInstrumentsMap);
+					(instrumentPtr->buyBook).AddtoBookwithTimeStamp(input, time, bookShelf.oIdNameMap);
 					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,false,time);
 					}
 				}
@@ -101,7 +101,7 @@ void Engine::connection_thread(ClientConnection connection)
 				if (isBuyOrderBookEmpty) {
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
 					chrono_reps time = getCurrentTimestamp();
-					(instrumentPtr->sellBook).AddtoBookwithTimeStamp(input,time, bookShelf.orderIdsToInstrumentsMap);
+					(instrumentPtr->sellBook).AddtoBookwithTimeStamp(input,time, bookShelf.oIdNameMap);
 					Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
 				}
 				else {
@@ -134,7 +134,7 @@ void Engine::connection_thread(ClientConnection connection)
 					if(input.count > 0) {
 						const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
 						chrono_reps time = getCurrentTimestamp();
-					    (instrumentPtr->sellBook).AddtoBookwithTimeStamp(input,time, bookShelf.orderIdsToInstrumentsMap);
+					    (instrumentPtr->sellBook).AddtoBookwithTimeStamp(input,time, bookShelf.oIdNameMap);
 					    Output::OrderAdded(input.order_id, input.instrument,input.price,input.count,true,time);
 					}
 				}
@@ -144,7 +144,7 @@ void Engine::connection_thread(ClientConnection connection)
 				// is there a mutex supposed to be here? There is no guarantee on cancelled order right, if another B/S thread comes at the same time and is served first?
 				std::string instrumentName;
                 chrono_reps output_time;	
-                if (bookShelf.orderIdsToInstrumentsMap.contains(input.order_id)) {
+                if (bookShelf.oIdNameMap.orderIdsToInstrumentsMap.contains(input.order_id)) {
                     instrumentName = getInstrumentForOrderId(input.order_id);
                 }
                 else {
@@ -162,7 +162,7 @@ void Engine::connection_thread(ClientConnection connection)
 					// acquire the buy mutex
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_buy_book_mutex};
                     output_time = getCurrentTimestamp();
-					(instrumentPtr->buyBook).QueryAndCancelOrder(input, output_time, cancel_in_buy, bookShelf.orderIdsToInstrumentsMap);
+					(instrumentPtr->buyBook).QueryAndCancelOrder(input, output_time, cancel_in_buy);
 					// std::cout <<"is it cancelled in buy? " << cancel_in_buy <<std::endl;
 				}
 
@@ -171,7 +171,7 @@ void Engine::connection_thread(ClientConnection connection)
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
                     output_time = getCurrentTimestamp();
 					
-                    (instrumentPtr->sellBook).QueryAndCancelOrder(input, output_time,cancel_in_sell, bookShelf.orderIdsToInstrumentsMap);
+                    (instrumentPtr->sellBook).QueryAndCancelOrder(input, output_time,cancel_in_sell);
 					// std::cout <<"is it cancelled in sell? " << cancel_in_sell <<std::endl;
 				}
 				// either one success would call the following output
