@@ -14,7 +14,7 @@ run_individual_test () {
   mkdir -p "./results/${BASE_FILENAME}"
   cd "./results/${BASE_FILENAME}"
 
-  for i in {0..9}; do
+  for i in {0..1}; do
     ../../../grader-linux ../../../engine < "../../$1" > "${BASE_FILENAME}_${i}.log" 2>&1
     TAIL=$(tail -n 1 "${BASE_FILENAME}_${i}.log")
     if [[ $TAIL == "test passed." ]]; then

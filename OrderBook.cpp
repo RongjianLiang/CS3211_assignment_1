@@ -31,13 +31,9 @@ public:
 		bool result = false;
 		int index = 0;
 		
-		SyncCerr {} << "Size" << this->books.size() <<std::endl;
 		for(auto it = this->books.begin(); it != this->books.end(); it++){
-			SyncCerr {} << input.order_id << " " << (*it).order_id  << std::endl;
 			if((*it).order_id == input.order_id){
 				// compare the timestamp and check if the order is fully filled 
-				SyncCerr {} << ((*it).time_stamp < time_stamp) <<std::endl;
-				SyncCerr {} << (*it).count <<std::endl;
 				result = (((*it).time_stamp < time_stamp) && ((*it).count > 0));
 				break;
 			}
@@ -46,7 +42,6 @@ public:
 		// purge the order
 		if (result == true){
 			this->books.erase(books.begin() + index);
-			SyncCerr {} << "cancelled"<<std::endl;
 		}
 		res = result;
 	}

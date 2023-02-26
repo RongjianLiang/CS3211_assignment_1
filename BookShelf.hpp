@@ -1,6 +1,7 @@
 #include <unordered_map>
 #include <memory>
 #include <shared_mutex>
+#include <atomic>
 
 #include "io.hpp"
 #include "OrderBook.cpp"
@@ -9,6 +10,10 @@ class Instrument
 {
 private:
 public:
+    std::atomic<int> writersForBuyBook;
+    std::atomic<int> writersForSellBook;
+    std::atomic<bool> isBuyBookEmpty;
+    std::atomic<bool> isSellBookEmpty;
     std::mutex instrument_buy_book_mutex;
     std::mutex instrument_sell_book_mutex;
     SellOrderBook sellBook = SellOrderBook();
