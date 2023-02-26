@@ -38,5 +38,6 @@ if [[ "$1" == "all" ]]; then
 else
   run_individual_test $1
 fi
-unset IFS
 
+find ./ -empty -type d -delete
+unset IFS
