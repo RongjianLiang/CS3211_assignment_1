@@ -36,9 +36,14 @@ void Engine::connection_thread(ClientConnection connection)
 				// get the instrument - for cancel, this is an empty instrumentName
 				std::shared_ptr<Instrument> instrumentPtr = bookShelf.getInstrumentBooksIfExistOrElseAddAndGet(std::string(input.instrument));
                 OrderBook& sell_orderbook = instrumentPtr->sellBook;
+				bool isSellOrderBookEmpty = false;
+				{
+					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
+					isSellOrderBookEmpty = sell_orderbook.books.empty();
+				}
 				
                 // simply add to buy book if the sell orderbook is empty, need to acquire buy orderbook mutex here 
-				if (sell_orderbook.books.empty()){
+				if (isSellOrderBookEmpty){
 					const std::lock_guard<std::mutex> lock {instrumentPtr->instrument_buy_book_mutex};
 					chrono_reps time = getCurrentTimestamp();
 					(instrumentPtr->buyBook).AddtoBookwithTimeStamp(input, time, orderIdsToInstrumentsMap);
@@ -86,9 +91,14 @@ void Engine::connection_thread(ClientConnection connection)
 				// get the instrument - for cancel, this is an empty instrumentName
 				std::shared_ptr<Instrument> instrumentPtr = bookShelf.getInstrumentBooksIfExistOrElseAddAndGet(std::string(input.instrument));
                 OrderBook& buy_orderbook = instrumentPtr->buyBook;
+				bool isBuyOrderBookEmpty = false;
+				{
+					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_buy_book_mutex};
+					isBuyOrderBookEmpty = buy_orderbook.books.empty();
+				}
 		
     		// simply add to sell orderbook if the buy orderbook is empty, need to acquire sell mutex
-				if (buy_orderbook.books.empty()){
+				if (isBuyOrderBookEmpty) {
 					const std::lock_guard<std::mutex> lock{instrumentPtr->instrument_sell_book_mutex};
 					chrono_reps time = getCurrentTimestamp();
 					(instrumentPtr->sellBook).AddtoBookwithTimeStamp(input,time, orderIdsToInstrumentsMap);
@@ -139,7 +149,7 @@ void Engine::connection_thread(ClientConnection connection)
                 }
                 else {
                     output_time = getCurrentTimestamp();
-					std::cout << "order deleted"<<std::endl;
+					SyncCerr {} << "order deleted"<<std::endl;
 				    Output::OrderDeleted(input.order_id, 0, output_time);
                     break;
                 }

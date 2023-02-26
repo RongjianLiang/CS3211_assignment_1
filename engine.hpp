@@ -14,11 +14,15 @@
 
 #include "BookShelf.hpp"
 #include "io.hpp"
+#include <atomic>
+
+static std::atomic<int> timesta;
 
 // a timstamping scheme should be implemented here?
 inline chrono_reps getCurrentTimestamp() noexcept
 {
-	return std::floor(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+	return timesta.fetch_add(1);
+// 	return std::floor(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
 }
 
 struct Engine

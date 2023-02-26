@@ -9,8 +9,8 @@ CFLAGS_VALGRIND := $(CFLAGS) -g -O3 -Wall -Wextra -pedantic -Werror -std=c18 -pt
 CXXFLAGS_VALGRIND := $(CXXFLAGS) -g -O3 -Wall -Wextra -Werror -pedantic  -std=c++20 -pthread 
 CFLAGS_MEMORY := $(CFLAGS) -g -O3 -Wall -Wextra -pedantic -Werror -std=c18 -pthread -fsanitize=memory
 CXXFLAGS_MEMORY := $(CXXFLAGS) -g -O3 -Wall -Wextra -Werror -pedantic  -std=c++20 -pthread -fsanitize=memory
-CFLAGS := $(CFLAGS_VALGRIND)
-CXXFLAGS:= $(CXXFLAGS_VALGRIND)
+CFLAGS := $(CFLAGS_THREAD)
+CXXFLAGS:= $(CXXFLAGS_THREAD)
 
 BUILDDIR = build
 
